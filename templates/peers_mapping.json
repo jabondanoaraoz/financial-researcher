@@ -1,65 +1,116 @@
 {
   "description": "Industry peer group mappings for comparable company analysis",
-  "version": "1.0.0",
-  "last_updated": "2026-02-18",
+  "version": "1.1.0",
+  "last_updated": "2026-02-19",
   "peer_groups": {
     "technology": {
       "mega_cap_tech": ["AAPL", "MSFT", "GOOGL", "AMZN", "META"],
-      "semiconductors": ["NVDA", "AMD", "INTC", "TSM", "AVGO"],
-      "software_saas": ["CRM", "ADBE", "NOW", "WDAY", "SNOW"],
-      "cybersecurity": ["CRWD", "PANW", "ZS", "FTNT", "S"]
+      
+      "semi_compute_datacenter": ["NVDA", "AMD", "AVGO", "MRVL", "ARM"],
+      "semi_equipment_lithography": ["ASML", "AMAT", "LRCX", "KLAC", "TER"],
+      "semi_foundry": ["TSM", "INTC", "GFS", "UMC"],
+      "semi_automotive_analog": ["TXN", "ADI", "NXPI", "ON", "STM", "MCHP"],
+      "semi_memory_storage": ["MU", "WDC", "STX", "PSTG"],
+      
+      "legacy_software": ["ORCL", "SAP", "IBM", "CSCO"],
+      "hardware_server_networking": ["ANET", "SMCI", "DELL", "HPE", "VRT"]
+    },
+    "high_growth_innovation": {
+      "fintech_disruptors": ["NU", "SOFI", "UPST", "AFRM", "HOOD", "COIN", "LC", "STNE"],
+      "global_ecommerce_marketplaces": ["BABA", "JD", "PDD", "MELI", "SE", "CPNG", "SHOP", "ETSY", "DASH", "UBER"],
+      "interactive_media_gaming": ["TCEHY", "NTES", "RBLX", "EA", "TTWO", "SONY", "SPOT"],
+      
+      "saas_infrastructure_data": ["SNOW", "MDB", "CFLT", "ESTC", "GTLB", "HCP", "BIDU"],
+      "saas_observability_devops": ["DDOG", "DT", "NET", "FSLY", "JFROG"],
+      "saas_cybersecurity": ["CRWD", "PANW", "ZS", "FTNT", "S", "OKTA", "CYBR"],
+      "saas_marketing_cx": ["HUBS", "CRM", "ZI", "BRAZE", "FRSH"],
+      "saas_work_collaboration": ["TEAM", "MNDY", "ASAN", "DOCU", "SMAR"],
+      "saas_vertical_industry": ["VEEV", "TOST", "APP", "DUOL", "PATH"]
     },
     "finance": {
-      "mega_banks": ["JPM", "BAC", "WFC", "C", "GS"],
+      "mega_banks": ["JPM", "BAC", "WFC", "C", "GS", "MS"],
       "regional_banks": ["USB", "PNC", "TFC", "COF", "SCHW"],
-      "payment_processors": ["V", "MA", "PYPL", "SQ", "AXP"],
-      "insurance": ["BRK.B", "PGR", "ALL", "TRV", "AIG"]
+      "payment_networks": ["V", "MA", "AXP", "DFS"],
+      "digital_payments": ["PYPL", "SQ", "ADYEY", "GPN"]
     },
     "healthcare": {
       "pharmaceuticals": ["JNJ", "PFE", "MRK", "ABBV", "LLY"],
-      "biotech": ["GILD", "AMGN", "REGN", "VRTX", "BIIB"],
-      "med_devices": ["MDT", "ABT", "TMO", "DHR", "SYK"],
+      "biotech": ["GILD", "AMGN", "REGN", "VRTX", "BIIB", "MRNA"],
+      "med_devices": ["MDT", "ABT", "TMO", "DHR", "SYK", "ISRG"],
       "health_insurance": ["UNH", "CVS", "CI", "HUM", "ELV"]
     },
     "consumer": {
-      "retail": ["WMT", "TGT", "COST", "HD", "LOW"],
-      "ecommerce": ["AMZN", "SHOP", "EBAY", "ETSY", "W"],
-      "consumer_goods": ["PG", "KO", "PEP", "NKE", "SBUX"],
-      "automotive": ["TSLA", "F", "GM", "TM", "STLA"]
+      "retail_big_box": ["WMT", "TGT", "COST", "BJ", "DG", "DLTR"],
+      "ecommerce_marketplaces": ["AMZN", "EBAY", "ETSY", "CHWY", "W", "RVLV"],
+      "home_improvement": ["HD", "LOW", "TSCO", "SHW", "FND"],
+      "restaurants_food_service": ["MCD", "SBUX", "CMG", "YUM", "DRI", "QSR"],
+      "apparel_luxury": ["NKE", "LULU", "LVMUY", "TPR", "ONON", "DECK"],
+      "consumer_staples": ["PG", "KO", "PEP", "CL", "KMB", "GIS"],
+      "automotive_ev": ["TSLA", "RIVN", "LCID", "LI", "XPEV"],
+      "automotive_legacy": ["F", "GM", "TM", "STLA", "HMC"]
     },
     "energy": {
-      "oil_gas": ["XOM", "CVX", "COP", "SLB", "MPC"],
-      "renewables": ["NEE", "ENPH", "SEDG", "RUN", "FSLR"]
+      "oil_gas_integrated": ["XOM", "CVX", "SHEL", "TTE", "BP", "EQNR"],
+      "oil_gas_ep": ["COP", "EOG", "OXY", "DVN", "HES"],
+      "midstream_pipelines": ["EPD", "ET", "KMI", "WMB", "TRP"],
+      "utilities_transmission": ["NEE", "DUK", "SO", "AEP", "PCG", "EXC"],
+      "nuclear_uranium": ["CCJ", "CEG", "URA", "LEU", "OKLO", "BWXT"],
+      "renewable_solar_wind": ["ENPH", "FSLR", "SEDG", "RUN", "ARRY", "NXT"]
     },
     "industrials": {
-      "aerospace": ["BA", "LMT", "RTX", "GD", "NOC"],
-      "machinery": ["CAT", "DE", "CMI", "ETN", "EMR"],
-      "transportation": ["UPS", "FDX", "DAL", "UAL", "LUV"]
+      "aerospace_defense": ["BA", "LMT", "RTX", "GD", "NOC", "LHX"],
+      "machinery_cat": ["CAT", "DE", "CMI", "ETN", "EMR"],
+      "logistics": ["UPS", "FDX", "ODFL", "XPO"]
     },
     "real_estate": {
-      "reits": ["PLD", "AMT", "CCI", "PSA", "EQIX"],
+      "reits_specialized": ["PLD", "AMT", "CCI", "PSA", "EQIX", "DLR"],
       "homebuilders": ["DHI", "LEN", "NVR", "PHM", "TOL"]
     },
     "telecom": {
-      "carriers": ["T", "VZ", "TMUS", "CMCSA", "CHTR"]
+      "connectivity": ["T", "VZ", "TMUS", "CMCSA", "CHTR"]
     }
   },
   "auto_mapping_rules": {
     "description": "Rules for automatically assigning peer groups based on company characteristics",
     "rules": [
       {
+        "rule_name": "Mega Cap Tech",
         "if_sector": "Technology",
         "and_market_cap_gt": 1000000000000,
         "then_group": "technology.mega_cap_tech"
       },
       {
-        "if_industry_contains": "Semiconductor",
-        "then_group": "technology.semiconductors"
+        "rule_name": "High Growth SaaS / Cloud",
+        "if_industry_contains": ["Software", "Data", "Cloud"],
+        "and_revenue_growth_gt": 0.30,
+        "and_gross_margin_gt": 0.60,
+        "then_group": "high_growth_innovation.saas_observability_devops"
       },
       {
+        "rule_name": "Fintech Disruptor",
         "if_sector": "Financial Services",
-        "and_industry_contains": "Banks",
-        "then_group": "finance.mega_banks"
+        "and_revenue_growth_gt": 0.20,
+        "and_price_to_book_gt": 4.0,
+        "then_group": "high_growth_innovation.fintech_disruptors"
+      },
+      {
+        "rule_name": "Legacy Banking (Value)",
+        "if_industry_contains": "Banks",
+        "and_dividend_yield_gt": 0.02,
+        "and_pe_ratio_lt": 15,
+        "then_group": "finance.regional_banks"
+      },
+      {
+        "rule_name": "Biotech Speculative",
+        "if_sector": "Healthcare",
+        "and_revenue_lt": 1000000000,
+        "and_profit_margin_lt": 0,
+        "then_group": "healthcare.biotech"
+      },
+      {
+        "rule_name": "Semiconductor Pure Play",
+        "if_industry_contains": "Semiconductor",
+        "then_group": "technology.semi_compute_datacenter"
       }
     ]
   }
