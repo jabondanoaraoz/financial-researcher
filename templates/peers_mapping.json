@@ -1,0 +1,66 @@
+{
+  "description": "Industry peer group mappings for comparable company analysis",
+  "version": "1.0.0",
+  "last_updated": "2026-02-18",
+  "peer_groups": {
+    "technology": {
+      "mega_cap_tech": ["AAPL", "MSFT", "GOOGL", "AMZN", "META"],
+      "semiconductors": ["NVDA", "AMD", "INTC", "TSM", "AVGO"],
+      "software_saas": ["CRM", "ADBE", "NOW", "WDAY", "SNOW"],
+      "cybersecurity": ["CRWD", "PANW", "ZS", "FTNT", "S"]
+    },
+    "finance": {
+      "mega_banks": ["JPM", "BAC", "WFC", "C", "GS"],
+      "regional_banks": ["USB", "PNC", "TFC", "COF", "SCHW"],
+      "payment_processors": ["V", "MA", "PYPL", "SQ", "AXP"],
+      "insurance": ["BRK.B", "PGR", "ALL", "TRV", "AIG"]
+    },
+    "healthcare": {
+      "pharmaceuticals": ["JNJ", "PFE", "MRK", "ABBV", "LLY"],
+      "biotech": ["GILD", "AMGN", "REGN", "VRTX", "BIIB"],
+      "med_devices": ["MDT", "ABT", "TMO", "DHR", "SYK"],
+      "health_insurance": ["UNH", "CVS", "CI", "HUM", "ELV"]
+    },
+    "consumer": {
+      "retail": ["WMT", "TGT", "COST", "HD", "LOW"],
+      "ecommerce": ["AMZN", "SHOP", "EBAY", "ETSY", "W"],
+      "consumer_goods": ["PG", "KO", "PEP", "NKE", "SBUX"],
+      "automotive": ["TSLA", "F", "GM", "TM", "STLA"]
+    },
+    "energy": {
+      "oil_gas": ["XOM", "CVX", "COP", "SLB", "MPC"],
+      "renewables": ["NEE", "ENPH", "SEDG", "RUN", "FSLR"]
+    },
+    "industrials": {
+      "aerospace": ["BA", "LMT", "RTX", "GD", "NOC"],
+      "machinery": ["CAT", "DE", "CMI", "ETN", "EMR"],
+      "transportation": ["UPS", "FDX", "DAL", "UAL", "LUV"]
+    },
+    "real_estate": {
+      "reits": ["PLD", "AMT", "CCI", "PSA", "EQIX"],
+      "homebuilders": ["DHI", "LEN", "NVR", "PHM", "TOL"]
+    },
+    "telecom": {
+      "carriers": ["T", "VZ", "TMUS", "CMCSA", "CHTR"]
+    }
+  },
+  "auto_mapping_rules": {
+    "description": "Rules for automatically assigning peer groups based on company characteristics",
+    "rules": [
+      {
+        "if_sector": "Technology",
+        "and_market_cap_gt": 1000000000000,
+        "then_group": "technology.mega_cap_tech"
+      },
+      {
+        "if_industry_contains": "Semiconductor",
+        "then_group": "technology.semiconductors"
+      },
+      {
+        "if_sector": "Financial Services",
+        "and_industry_contains": "Banks",
+        "then_group": "finance.mega_banks"
+      }
+    ]
+  }
+}
