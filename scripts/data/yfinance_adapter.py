@@ -193,7 +193,9 @@ def get_key_metrics(ticker: str) -> Optional[Dict[str, float]]:
             'ps_ratio': float(info.get('priceToSalesTrailing12Months', 0)) if info.get('priceToSalesTrailing12Months') else None,
             'peg_ratio': float(info.get('pegRatio', 0)) if info.get('pegRatio') else None,
             'ev_ebitda': float(info.get('enterpriseToEbitda', 0)) if info.get('enterpriseToEbitda') else None,
-            'dividend_yield': float(info.get('dividendYield', 0)) * 100 if info.get('dividendYield') else None,
+            'dividend_yield': (float(info.get('trailingAnnualDividendYield', 0)) * 100
+                               if info.get('trailingAnnualDividendYield')
+                               else (float(info.get('dividendYield', 0)) * 100 if info.get('dividendYield') else None)),
             'beta': float(info.get('beta', 0)) if info.get('beta') else None,
             '52w_high': float(info.get('fiftyTwoWeekHigh', 0)) if info.get('fiftyTwoWeekHigh') else None,
             '52w_low': float(info.get('fiftyTwoWeekLow', 0)) if info.get('fiftyTwoWeekLow') else None,
