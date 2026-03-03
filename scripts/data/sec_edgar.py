@@ -1,6 +1,5 @@
 """
 SEC EDGAR Data Adapter
-======================
 Official SEC filings data extraction using EDGAR API.
 
 EDGAR provides the most authoritative financial data directly from SEC filings.
@@ -8,7 +7,7 @@ All public companies must file quarterly (10-Q) and annual (10-K) reports.
 
 API Documentation: https://www.sec.gov/edgar/sec-api-documentation
 
-Author: Financial Researcher Team
+Author: Joaquin Abondano w/ Claude Code
 """
 
 import requests

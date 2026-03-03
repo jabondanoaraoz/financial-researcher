@@ -1,6 +1,5 @@
 """
 FRED Data Adapter
-=================
 Federal Reserve Economic Data (FRED) - Macroeconomic indicators.
 
 FRED provides authoritative US economic data from the Federal Reserve Bank
@@ -8,7 +7,7 @@ of St. Louis. Essential for understanding the macro environment for investments.
 
 API Docs: https://fred.stlouisfed.org/docs/api/
 
-Author: Financial Researcher Team
+Author: Joaquin Abondano w/ Claude Code
 """
 
 import requests

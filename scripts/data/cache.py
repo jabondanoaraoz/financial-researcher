@@ -1,6 +1,5 @@
 """
 SQLite Cache System
-===================
 Persistent cache for financial data to minimize API calls and improve performance.
 
 Features:
@@ -10,7 +9,7 @@ Features:
 - Cache statistics and monitoring
 - Source tracking (yfinance, FRED, Alpha Vantage, etc.)
 
-Author: Financial Researcher Team
+Author: Joaquin Abondano w/ Claude Code
 """
 
 import sqlite3

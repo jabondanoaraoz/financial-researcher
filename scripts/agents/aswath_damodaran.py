@@ -1,6 +1,5 @@
 """
 Aswath Damodaran Agent
-======================
 "Every asset has an intrinsic value — the story must match the numbers."
 
 Damodaran's framework: disciplined DCF valuation, narrative consistency,
@@ -20,7 +19,7 @@ Key differentiators vs other agents:
     • Revenue scored on RATE + CONSISTENCY (CoV) — sustainable growth premium
     • Margin trajectory scored as level + trend (convergence to target matters)
 
-Author: Financial Researcher Team
+Author: Joaquin Abondano w/ Claude Code
 """
 
 import logging
@@ -55,9 +54,7 @@ You will receive quantitative scores (/20) across four criteria. Produce your op
 }"""
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # Helpers
-# ─────────────────────────────────────────────────────────────────────────────
 
 def _annual_series(df, row: str, n: int = 5) -> list:
     """Return up to n annual values for a row; index 0 = most recent."""
@@ -123,9 +120,7 @@ def _effective_tax_rate(inc) -> float:
     return 0.25
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # WACC (shared across pillars 3 & 4)
-# ─────────────────────────────────────────────────────────────────────────────
 
 def _compute_wacc(inc, bs, metrics: dict, rfr: float) -> Tuple[float, dict]:
     """
@@ -174,9 +169,7 @@ def _compute_wacc(inc, bs, metrics: dict, rfr: float) -> Tuple[float, dict]:
     return wacc, debug
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # ROIC & Reinvestment Rate (shared helpers)
-# ─────────────────────────────────────────────────────────────────────────────
 
 def _compute_roic(inc, bs) -> Optional[float]:
     """ROIC = NOPAT / Invested Capital  (equity + net debt)."""
@@ -239,9 +232,7 @@ def _compute_reinvestment_rate(inc, cf) -> Optional[float]:
     return max(min(reinv_rate, 1.5), -0.5)   # clamp to sensible range
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # Scoring pillars
-# ─────────────────────────────────────────────────────────────────────────────
 
 def _score_revenue_growth(inc) -> dict:
     """
@@ -380,7 +371,7 @@ def _score_reinvestment_efficiency(inc, bs, cf, wacc: float) -> dict:
 
     roic = _compute_roic(inc, bs)
 
-    # ── ROIC vs WACC spread (/3) ──────────────────────────────────────────
+    # ROIC vs WACC spread (/3)
     if roic is not None:
         spread = roic - wacc
         if spread >= 0.15:   roic_pts = 3.0
@@ -398,7 +389,7 @@ def _score_reinvestment_efficiency(inc, bs, cf, wacc: float) -> dict:
     else:
         detail["roic"] = {"value": "Cannot compute ROIC (missing operating income or equity)", "pts": 0, "max": 3}
 
-    # ── Reinvestment rate quality (/2) ────────────────────────────────────
+    # Reinvestment rate quality (/2)
     reinv_rate = _compute_reinvestment_rate(inc, cf)
     if reinv_rate is not None and roic is not None:
         creates_value = roic > wacc
@@ -454,7 +445,7 @@ def _score_dcf(inc, bs, cf, metrics: dict, rfr: float,
     tax_rate = _effective_tax_rate(inc)
     op_inc   = _get_latest(inc, "Operating Income", "EBIT")
 
-    # ── Base FCFF ─────────────────────────────────────────────────────────
+    # Base FCFF
     if op_inc and op_inc > 0:
         nopat  = op_inc * (1 - tax_rate)
         capex  = _get_latest(cf, "Capital Expenditure",
@@ -487,7 +478,7 @@ def _score_dcf(inc, bs, cf, metrics: dict, rfr: float,
         }
         return {"score": 0.0, "max": 5, "detail": detail}
 
-    # ── Growth rates ──────────────────────────────────────────────────────
+    # Growth rates
     rev_series = _annual_series(inc, "Total Revenue", n=6)
     if not rev_series:
         rev_series = _annual_series(inc, "Revenue", n=6)
@@ -502,18 +493,18 @@ def _score_dcf(inc, bs, cf, metrics: dict, rfr: float,
     # Guard: WACC must exceed terminal growth
     effective_wacc = max(wacc, g_t + 0.02)
 
-    # ── PV of Stage 1 (years 1-5) ─────────────────────────────────────────
+    # PV of Stage 1 (years 1-5)
     pv1  = 0.0
     fcff = fcff_base
     for yr in range(1, 6):
         fcff  *= (1 + g1)
         pv1   += fcff / (1 + effective_wacc) ** yr
 
-    # ── Terminal value ────────────────────────────────────────────────────
+    # Terminal value
     tv   = fcff * (1 + g_t) / (effective_wacc - g_t)
     pv_tv = tv / (1 + effective_wacc) ** 5
 
-    # ── Enterprise → equity value per share ──────────────────────────────
+    # Enterprise → equity value per share
     ev    = pv1 + pv_tv
     cash  = (_get_latest(bs, "Cash And Cash Equivalents",
                          "Cash And Short Term Investments",
@@ -565,9 +556,7 @@ def _score_dcf(inc, bs, cf, metrics: dict, rfr: float,
     }
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # Agent class
-# ─────────────────────────────────────────────────────────────────────────────
 
 class AswathDamodaranAgent(BaseAgent):
     """Aswath Damodaran — disciplined DCF; story must match numbers."""
@@ -585,10 +574,10 @@ class AswathDamodaranAgent(BaseAgent):
         bs  = financials.get("balance_sheet")
         cf  = financials.get("cash_flow")
 
-        # ── WACC — computed once, shared across pillars 3 & 4 ─────────────
+        # WACC — computed once, shared across pillars 3 & 4
         wacc, wacc_debug = _compute_wacc(inc, bs, metrics, rfr)
 
-        # ── Score all four criteria ────────────────────────────────────────
+        # Score all four criteria
         rev_score    = _score_revenue_growth(inc)
         margin_score = _score_margin_trajectory(inc)
         reinv_score  = _score_reinvestment_efficiency(inc, bs, cf, wacc)
@@ -604,7 +593,7 @@ class AswathDamodaranAgent(BaseAgent):
         upside_pct      = dcf_score.get("upside_pct")
         company_name    = (data.get("company_info") or {}).get("name", ticker)
 
-        # ── LLM prompt ────────────────────────────────────────────────────
+        # LLM prompt
         user_prompt = f"""
 Ticker: {ticker} ({company_name})
 

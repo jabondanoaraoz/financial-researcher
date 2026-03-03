@@ -1,12 +1,11 @@
 """
 Base Agent
-==========
 Abstract base class and shared data structures for all investment agents.
 
 Every agent in the Financial Researcher implements this interface,
 ensuring a consistent output format that the orchestrator can aggregate.
 
-Author: Financial Researcher Team
+Author: Joaquin Abondano w/ Claude Code
 """
 
 from abc import ABC, abstractmethod
@@ -35,7 +34,6 @@ class AgentSignal:
     Standardized output produced by every agent after analyzing a ticker.
 
     Fields
-    ------
     agent_id : str
         Machine-readable identifier (e.g. "fundamentals", "warren_buffett")
     agent_name : str
@@ -124,7 +122,6 @@ class BaseAgent(ABC):
     so an individual agent crash never kills the entire pipeline.
 
     Parameters
-    ----------
     agent_id : str
         Machine-readable identifier.
     agent_name : str
@@ -142,7 +139,6 @@ class BaseAgent(ABC):
         Core analysis logic.  Subclasses implement this.
 
         Parameters
-        ----------
         data : dict
             Consolidated data bundle from the data layer.  Expected keys:
                 company_info  → dict  (from yfinance_adapter)
@@ -156,7 +152,6 @@ class BaseAgent(ABC):
             Ticker symbol being analyzed.
 
         Returns
-        -------
         AgentSignal
         """
         raise NotImplementedError

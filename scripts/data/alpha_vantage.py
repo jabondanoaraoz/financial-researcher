@@ -1,6 +1,5 @@
 """
 Alpha Vantage Data Adapter
-===========================
 Enhanced financial metrics and technical indicators from Alpha Vantage API.
 
 Alpha Vantage provides pre-calculated financial ratios, analyst ratings,
@@ -9,7 +8,7 @@ and technical indicators that complement basic yfinance data.
 Free Tier: 25 requests/day
 API Docs: https://www.alphavantage.co/documentation/
 
-Author: Financial Researcher Team
+Author: Joaquin Abondano w/ Claude Code
 """
 
 import requests

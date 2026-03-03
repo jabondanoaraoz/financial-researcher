@@ -1,6 +1,5 @@
 """
 Warren Buffett Agent
-====================
 "Wonderful companies at fair prices" — hybrid quant + LLM agent.
 
 Scoring weights (total /20):
@@ -15,7 +14,7 @@ Key differentiators vs other agents:
     • Penalises ROIC < WACC (capital destruction even with positive earnings)
     • Gross margin stability as a proxy for pricing power / durable moat
 
-Author: Financial Researcher Team
+Author: Joaquin Abondano w/ Claude Code
 """
 
 import logging
@@ -33,9 +32,7 @@ EQUITY_RISK_PREMIUM = 0.055   # 5.5% — standard Damodaran ERP for US market
 TAX_RATE_DEFAULT    = 0.21    # 21% US corporate tax rate
 
 
-# ──────────────────────────────────────────────────────────────────────────────
 # SYSTEM PROMPT
-# ──────────────────────────────────────────────────────────────────────────────
 
 SYSTEM_PROMPT = """You are Warren Buffett, Chairman of Berkshire Hathaway, performing a stock analysis.
 Your philosophy: buy wonderful companies at fair prices and hold forever. You look for durable competitive moats
@@ -55,9 +52,7 @@ Based on this data, produce a disciplined investment opinion in the following JS
 }"""
 
 
-# ──────────────────────────────────────────────────────────────────────────────
 # Helper: multi-year series extractor
-# ──────────────────────────────────────────────────────────────────────────────
 
 def _annual_series(df, row: str, n_years: int = 4) -> list[float]:
     """Return up to n_years of annual values for a given row in a financial DataFrame."""
@@ -75,9 +70,7 @@ def _annual_series(df, row: str, n_years: int = 4) -> list[float]:
     return values
 
 
-# ──────────────────────────────────────────────────────────────────────────────
 # Scoring pillars
-# ──────────────────────────────────────────────────────────────────────────────
 
 def _score_moat(financials: dict, av: dict) -> dict:
     """
@@ -96,7 +89,7 @@ def _score_moat(financials: dict, av: dict) -> dict:
     inc = financials.get("income_statement")
     bs  = financials.get("balance_sheet")
 
-    # ── ROE consistency ───────────────────────────────────────────────
+    # ROE consistency
     net_incomes = _annual_series(inc, "Net Income")
     equities    = _annual_series(bs,  "Stockholders Equity") or \
                   _annual_series(bs,  "Total Stockholders Equity")
@@ -133,7 +126,7 @@ def _score_moat(financials: dict, av: dict) -> dict:
         score += roe_pts
         detail["roe_snapshot"] = {"value": round(roe_snap, 1), "pts": round(roe_pts, 1), "max": 3}
 
-    # ── ROIC ──────────────────────────────────────────────────────────
+    # ROIC
     roic = None
     if inc is not None and bs is not None and not inc.empty and not bs.empty:
         col = inc.columns[0]
@@ -168,7 +161,7 @@ def _score_moat(financials: dict, av: dict) -> dict:
         score += roic_pts
         detail["roic"] = {"value": round(roic, 1), "pts": round(roic_pts, 2), "max": 2.5}
 
-    # ── Gross Margin level + stability ───────────────────────────────
+    # Gross Margin level + stability
     revenues = _annual_series(inc, "Total Revenue")
     grossps  = _annual_series(inc, "Gross Profit")
 
@@ -218,7 +211,7 @@ def _score_management(financials: dict, key_metrics: dict, risk_free_rate: float
     mkt_cap = key_metrics.get("enterprise_value") or \
               ((key_metrics.get("shares_outstanding") or 0) * (key_metrics.get("current_price") or 0))
 
-    # ── Owner Earnings Yield ──────────────────────────────────────────
+    # Owner Earnings Yield
     if cf is not None and not cf.empty and mkt_cap and mkt_cap > 0:
         col = cf.columns[0]
         ocf   = cf.loc["Operating Cash Flow",    col] if "Operating Cash Flow"    in cf.index else None
@@ -238,7 +231,7 @@ def _score_management(financials: dict, key_metrics: dict, risk_free_rate: float
             score += oey_pts
             detail["owner_earnings_yield"] = {"value": f"{round(oey, 2)}%", "pts": round(oey_pts, 1), "max": 2}
 
-    # ── FCF consistency ───────────────────────────────────────────────
+    # FCF consistency
     if cf is not None and not cf.empty:
         fcf_values = []
         fcf_row = "Free Cash Flow" if "Free Cash Flow" in cf.index else None
@@ -261,7 +254,7 @@ def _score_management(financials: dict, key_metrics: dict, risk_free_rate: float
                 "pts": round(fcf_pts, 1), "max": 1
             }
 
-    # ── ROIC vs WACC spread ───────────────────────────────────────────
+    # ROIC vs WACC spread
     beta = key_metrics.get("beta") or 1.0
     cost_of_equity = risk_free_rate + beta * EQUITY_RISK_PREMIUM
 
@@ -389,7 +382,7 @@ def _score_valuation(financials: dict, key_metrics: dict, av: dict) -> dict:
     cf      = financials.get("cash_flow")
     mkt_cap = (key_metrics.get("shares_outstanding") or 0) * (key_metrics.get("current_price") or 0)
 
-    # ── Owner Earnings Yield ──────────────────────────────────────────
+    # Owner Earnings Yield
     if cf is not None and not cf.empty and mkt_cap > 0:
         col = cf.columns[0]
         ocf   = cf.loc["Operating Cash Flow",  col] if "Operating Cash Flow"  in cf.index else None
@@ -405,7 +398,7 @@ def _score_valuation(financials: dict, key_metrics: dict, av: dict) -> dict:
             score += oey_pts
             detail["owner_earnings_yield"] = {"value": f"{round(oey, 2)}%", "pts": round(oey_pts, 2), "max": 1.5}
 
-    # ── P/B ratio ─────────────────────────────────────────────────────
+    # P/B ratio
     pb = key_metrics.get("pb_ratio") or (av.get("price_to_book") if av else None)
     if pb and pb > 0:
         if pb <= 2:     pb_pts = 0.75
@@ -415,7 +408,7 @@ def _score_valuation(financials: dict, key_metrics: dict, av: dict) -> dict:
         score += pb_pts
         detail["price_to_book"] = {"value": round(pb, 2), "pts": round(pb_pts, 2), "max": 0.75}
 
-    # ── P/E vs growth ─────────────────────────────────────────────────
+    # P/E vs growth
     pe = key_metrics.get("pe_ratio") or (av.get("pe_ratio") if av else None)
     growth = None
     if av and av.get("quarterly_earnings_growth_yoy"):
@@ -447,9 +440,7 @@ def _score_valuation(financials: dict, key_metrics: dict, av: dict) -> dict:
     return {"score": round(min(score, 3), 2), "max": 3, "detail": detail}
 
 
-# ──────────────────────────────────────────────────────────────────────────────
 # Agent class
-# ──────────────────────────────────────────────────────────────────────────────
 
 class WarrenBuffettAgent(BaseAgent):
     """Warren Buffett — wonderful companies at fair prices."""
@@ -464,7 +455,7 @@ class WarrenBuffettAgent(BaseAgent):
         av         = data.get("av_overview")   or {}
         risk_free  = data.get("risk_free_rate") or 0.043
 
-        # ── Score all four pillars ─────────────────────────────────────
+        # Score all four pillars
         moat     = _score_moat(financials, av)
         mgmt     = _score_management(financials, metrics, risk_free)
         disc     = _score_financial_discipline(financials, metrics)
@@ -476,7 +467,7 @@ class WarrenBuffettAgent(BaseAgent):
 
         company_name = data.get("company_info", {}).get("name", ticker) if data.get("company_info") else ticker
 
-        # ── LLM reasoning ─────────────────────────────────────────────
+        # LLM reasoning
         user_prompt = f"""
 Ticker: {ticker} ({company_name})
 
@@ -505,7 +496,7 @@ Provide your investment opinion as JSON.
 
         llm_result = self.llm.generate_json(SYSTEM_PROMPT, user_prompt)
 
-        # ── Parse LLM output ──────────────────────────────────────────
+        # Parse LLM output
         signal        = llm_result.get("signal", _norm_score_to_signal(norm_score))
         confidence    = float(llm_result.get("confidence", norm_score))
         reasoning     = llm_result.get("reasoning", "LLM response unavailable.")
@@ -544,9 +535,7 @@ Provide your investment opinion as JSON.
         )
 
 
-# ──────────────────────────────────────────────────────────────────────────────
 # Internal utilities
-# ──────────────────────────────────────────────────────────────────────────────
 
 def _fmt_detail(detail: dict) -> str:
     lines = []

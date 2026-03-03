@@ -1,6 +1,5 @@
 """
 Fundamentals Agent
-==================
 100% quantitative agent — no LLM calls.
 
 Scores a company across four pillars using hard thresholds:
@@ -17,7 +16,7 @@ Each pillar returns:
 The final signal is the plurality vote of the four pillars.
 Confidence = fraction of pillars that agree with the final signal.
 
-Author: Financial Researcher Team
+Author: Joaquin Abondano w/ Claude Code
 """
 
 import logging
@@ -29,9 +28,7 @@ from agents.base_agent import ACTION_BUY, ACTION_HOLD, ACTION_SELL
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
 # Threshold tables
-# ---------------------------------------------------------------------------
 
 # Valuation — LOWER is better
 VALUATION_THRESHOLDS = {
@@ -71,9 +68,7 @@ HEALTH_THRESHOLDS = {
 }
 
 
-# ---------------------------------------------------------------------------
 # Scoring helpers
-# ---------------------------------------------------------------------------
 
 def _score_low_is_good(value: float, bull_t: float, bear_t: float) -> tuple:
     """Signal + score for metrics where a lower value is bullish."""
@@ -113,9 +108,7 @@ def _pillar_vote(signals: list) -> tuple:
     return winner, conf
 
 
-# ---------------------------------------------------------------------------
 # Fundamentals Agent
-# ---------------------------------------------------------------------------
 
 class FundamentalsAgent(BaseAgent):
     """Quantitative fundamentals agent — no LLM required."""
@@ -123,7 +116,7 @@ class FundamentalsAgent(BaseAgent):
     def __init__(self):
         super().__init__(agent_id="fundamentals", agent_name="Fundamentals Analyst")
 
-    # ── Pillar 1: Valuation ───────────────────────────────────────────
+    # Pillar 1: Valuation
 
     def _score_valuation(self, metrics: dict, av: dict) -> dict:
         results, signals, scores = {}, [], []
@@ -159,7 +152,7 @@ class FundamentalsAgent(BaseAgent):
             "n_metrics": len(signals),
         }
 
-    # ── Pillar 2: Profitability ───────────────────────────────────────
+    # Pillar 2: Profitability
 
     def _score_profitability(self, metrics: dict, av: dict, financials: dict) -> dict:
         results, signals, scores = {}, [], []
@@ -216,7 +209,7 @@ class FundamentalsAgent(BaseAgent):
             "n_metrics": len(signals),
         }
 
-    # ── Pillar 3: Growth ──────────────────────────────────────────────
+    # Pillar 3: Growth
 
     def _score_growth(self, av: dict, financials: dict) -> dict:
         results, signals, scores = {}, [], []
@@ -281,7 +274,7 @@ class FundamentalsAgent(BaseAgent):
             "n_metrics": len(signals),
         }
 
-    # ── Pillar 4: Financial Health ────────────────────────────────────
+    # Pillar 4: Financial Health
 
     def _score_health(self, financials: dict) -> dict:
         results, signals, scores = {}, [], []
@@ -354,7 +347,7 @@ class FundamentalsAgent(BaseAgent):
             "n_metrics": len(signals),
         }
 
-    # ── Reasoning & risks ─────────────────────────────────────────────
+    # Reasoning & risks
 
     def _build_reasoning(self, ticker: str, pillars: dict, final_signal: str, confidence: float) -> str:
         lines = [f"{ticker} — Fundamentals Analysis  |  {final_signal.upper()}  |  {confidence:.0%} confidence\n"]
@@ -384,7 +377,7 @@ class FundamentalsAgent(BaseAgent):
                     risks.append(f"{metric.replace('_', ' ').title()} is stretched ({info['value']})")
         return risks[:5] if risks else ["No major fundamental red flags identified"]
 
-    # ── BaseAgent.analyze() ───────────────────────────────────────────
+    # BaseAgent.analyze()
 
     def analyze(self, data: dict, ticker: str) -> AgentSignal:
         metrics    = data.get("key_metrics")  or {}

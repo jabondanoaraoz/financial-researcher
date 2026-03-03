@@ -1,6 +1,5 @@
 """
 LLM Client
-==========
 Provider-agnostic LLM wrapper used by all AI-driven agents.
 
 Supports: Groq · Anthropic · OpenAI · DeepSeek · Ollama (local)
@@ -9,7 +8,7 @@ Provider selection and credentials are read from environment variables:
     LLM_PROVIDER  → groq | anthropic | openai | deepseek | ollama
     LLM_MODEL     → optional override (falls back to per-provider defaults)
 
-Author: Financial Researcher Team
+Author: Joaquin Abondano w/ Claude Code
 """
 
 import os
@@ -34,14 +33,12 @@ class LLMClient:
     Thin, provider-agnostic wrapper around chat-completion APIs.
 
     Usage
-    -----
     >>> client = LLMClient()                          # reads from env
     >>> text   = client.generate(system, user)        # plain text
     >>> obj    = client.generate(system, user,        # structured JSON
     ...              response_format={"type": "json_object"})
 
     Parameters
-    ----------
     provider : str
         LLM backend.  Defaults to LLM_PROVIDER env var, then "groq".
     model : str | None
@@ -68,9 +65,7 @@ class LLMClient:
         self._client = self._init_client()
         logger.info(f"LLMClient ready: provider={self.provider}, model={self.model}")
 
-    # ------------------------------------------------------------------
     # Initialisation helpers
-    # ------------------------------------------------------------------
 
     def _init_client(self):
         """Instantiate the underlying SDK client for the chosen provider."""
@@ -125,9 +120,7 @@ class LLMClient:
             base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
         )
 
-    # ------------------------------------------------------------------
     # Public interface
-    # ------------------------------------------------------------------
 
     def generate(
         self,
@@ -139,7 +132,6 @@ class LLMClient:
         Generate a text response from the LLM.
 
         Parameters
-        ----------
         system_prompt : str
             Sets the persona/context for the model.
         user_prompt : str
@@ -149,7 +141,6 @@ class LLMClient:
             Not all providers support this — Groq and OpenAI do.
 
         Returns
-        -------
         str
             Raw model output (plain text or JSON string).
         """
@@ -189,9 +180,7 @@ class LLMClient:
             logger.warning("LLM returned non-JSON response, returning empty dict")
             return {}
 
-    # ------------------------------------------------------------------
     # Provider-specific implementations
-    # ------------------------------------------------------------------
 
     def _generate_openai_compatible(
         self,

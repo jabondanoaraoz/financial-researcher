@@ -1,9 +1,8 @@
 """
 YFinance Data Adapter
-=====================
 Main data provider for financial data extraction using yfinance library.
 
-Author: Financial Researcher Team
+Author: Joaquin Abondano w/ Claude Code
 """
 
 import yfinance as yf
@@ -205,6 +204,8 @@ def get_key_metrics(ticker: str) -> Optional[Dict[str, float]]:
             'forward_pe': float(info.get('forwardPE', 0)) if info.get('forwardPE') else None,
             'price_to_fcf': float(info.get('priceToFreeCashFlow', 0)) if info.get('priceToFreeCashFlow') else None,
             'current_price': float(info.get('currentPrice', 0)) if info.get('currentPrice') else None,
+            'short_percent_of_float': float(info.get('shortPercentOfFloat', 0)) * 100 if info.get('shortPercentOfFloat') else None,
+            'short_ratio': float(info.get('shortRatio', 0)) if info.get('shortRatio') else None,
         }
 
         logger.info(f"Successfully fetched key metrics for {ticker}")
@@ -212,6 +213,96 @@ def get_key_metrics(ticker: str) -> Optional[Dict[str, float]]:
 
     except Exception as e:
         logger.error(f"Failed to fetch key metrics for {ticker}: {str(e)}")
+        return None
+
+
+def get_insider_transactions(ticker: str) -> Optional[Dict[str, Any]]:
+    """
+    Get insider trading activity for the ticker.
+
+    Returns:
+        Dictionary containing:
+        - transactions: list of raw transaction dicts (date, insider, type, shares, value)
+        - net_buy_value: total $ value of buys minus sells (last 6 months)
+        - n_buyers: number of distinct insiders who bought
+        - n_sellers: number of distinct insiders who sold
+        - summary: "net_buying" | "net_selling" | "neutral"
+
+        Returns None if data extraction fails.
+    """
+    try:
+        stock = yf.Ticker(ticker)
+        df = stock.insider_transactions
+
+        if df is None or df.empty:
+            logger.warning(f"No insider transaction data for {ticker}")
+            return {"transactions": [], "net_buy_value": 0, "n_buyers": 0, "n_sellers": 0, "summary": "neutral"}
+
+        # Normalize column names (yfinance column names can vary)
+        df.columns = [c.strip() for c in df.columns]
+
+        # Keep last ~6 months
+        if "Date" in df.columns:
+            df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+            cutoff = pd.Timestamp.now() - pd.DateOffset(months=6)
+            df = df[df["Date"] >= cutoff]
+
+        transactions = []
+        buy_value  = 0.0
+        sell_value = 0.0
+        buyers     = set()
+        sellers    = set()
+
+        for _, row in df.iterrows():
+            # Determine transaction type from the "Text" or "Transaction" column
+            tx_text = str(row.get("Text", row.get("Transaction", ""))).lower()
+            is_buy  = any(w in tx_text for w in ("purchase", "buy", "acquisition", "acquired"))
+            is_sell = any(w in tx_text for w in ("sale", "sell", "sold", "disposed"))
+
+            shares = row.get("Shares", 0) or 0
+            value  = row.get("Value",  0) or 0
+            insider = str(row.get("Insider", row.get("Name", "Unknown")))
+
+            try:
+                shares = float(shares)
+                value  = float(value)
+            except (TypeError, ValueError):
+                shares, value = 0.0, 0.0
+
+            if is_buy:
+                buy_value += value
+                buyers.add(insider)
+            elif is_sell:
+                sell_value += value
+                sellers.add(insider)
+
+            transactions.append({
+                "insider":     insider,
+                "type":        "buy" if is_buy else ("sell" if is_sell else "other"),
+                "shares":      shares,
+                "value":       value,
+                "date":        str(row.get("Date", "")),
+            })
+
+        net_buy_value = buy_value - sell_value
+        if net_buy_value > 0:
+            summary = "net_buying"
+        elif net_buy_value < 0:
+            summary = "net_selling"
+        else:
+            summary = "neutral"
+
+        logger.info(f"Insider data for {ticker}: {len(transactions)} txns, net={net_buy_value:,.0f}, buyers={len(buyers)}, sellers={len(sellers)}")
+        return {
+            "transactions":   transactions,
+            "net_buy_value":  net_buy_value,
+            "n_buyers":       len(buyers),
+            "n_sellers":      len(sellers),
+            "summary":        summary,
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to fetch insider transactions for {ticker}: {str(e)}")
         return None
 
 

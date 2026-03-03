@@ -1,6 +1,5 @@
 """
 Ben Graham Agent
-================
 "The Intelligent Investor" — the most quantitative agent in the suite.
 
 Graham's philosophy: buy with a margin of safety. Numbers must justify the price.
@@ -21,7 +20,7 @@ Key differentiators vs other agents:
     • Dividend penalises lightly — Graham preferred them but didn't require them
     • Would score GOOGL harshly on valuation despite its quality (by design)
 
-Author: Financial Researcher Team
+Author: Joaquin Abondano w/ Claude Code
 """
 
 import logging
@@ -53,9 +52,7 @@ You will receive quantitative scores (/30) across six criteria. Produce your opi
 }"""
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # Helpers
-# ─────────────────────────────────────────────────────────────────────────────
 
 def _annual_series(df, row: str, n: int = 5) -> list:
     if df is None or df.empty or row not in df.index:
@@ -99,9 +96,7 @@ def _fmt_big(v) -> str:
     return f"{v:,.0f}"
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # Scoring pillars
-# ─────────────────────────────────────────────────────────────────────────────
 
 def _score_graham_number(inc, bs, key_metrics: dict, av: dict) -> dict:
     """
@@ -287,7 +282,7 @@ def _score_liquidity_ncav(bs, key_metrics: dict) -> dict:
     price      = key_metrics.get("current_price")
     shares     = key_metrics.get("shares_outstanding")
 
-    # ── Current Ratio (/4) ────────────────────────────────────────────
+    # Current Ratio (/4)
     if cur_assets and cur_liab and cur_liab > 0:
         cr = cur_assets / cur_liab
         if cr >= 3.0:    cr_pts = 4.0
@@ -299,7 +294,7 @@ def _score_liquidity_ncav(bs, key_metrics: dict) -> dict:
         total_pts += cr_pts
         detail["current_ratio"] = {"value": round(cr, 2), "pts": round(cr_pts, 1), "max": 4}
 
-    # ── NCAV (/3) ─────────────────────────────────────────────────────
+    # NCAV (/3)
     if cur_assets and total_liab and price and shares and shares > 0:
         ncav          = cur_assets - total_liab
         ncav_per_share = ncav / shares
@@ -421,9 +416,7 @@ def _score_dividend(key_metrics: dict, av: dict) -> dict:
     return {"score": 0.0, "max": 2, "detail": detail}
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # Agent class
-# ─────────────────────────────────────────────────────────────────────────────
 
 class BenGrahamAgent(BaseAgent):
     """Ben Graham — margin of safety through quantitative rigor."""
@@ -441,7 +434,7 @@ class BenGrahamAgent(BaseAgent):
         inc = financials.get("income_statement")
         bs  = financials.get("balance_sheet")
 
-        # ── Score all six criteria ─────────────────────────────────────
+        # Score all six criteria
         gn_score   = _score_graham_number(inc, bs, metrics, av)
         pe_score   = _score_pe_dynamic(metrics, av, risk_free)
         pb_score   = _score_pb(metrics, av)
@@ -465,7 +458,7 @@ class BenGrahamAgent(BaseAgent):
 
         company_name = (data.get("company_info") or {}).get("name", ticker)
 
-        # ── LLM prompt ────────────────────────────────────────────────
+        # LLM prompt
         user_prompt = f"""
 Ticker: {ticker} ({company_name})
 
