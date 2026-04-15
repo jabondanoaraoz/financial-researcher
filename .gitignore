@@ -46,9 +46,9 @@ env/
 *.sqlite3
 cache/
 
-# Output files
-output/*.xlsx
-output/*.csv
+# Output files — generated reports go here, folder is tracked but contents are not
+output/*
+!output/.gitkeep
 *.log
 
 # OS
