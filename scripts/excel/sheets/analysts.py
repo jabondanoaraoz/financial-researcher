@@ -30,6 +30,19 @@ C1  = 2   # col B
 CE  = 9   # col I
 
 
+SCORE_METHODOLOGY = {
+    "fundamentals":      "0–1 score: valuation (P/E, P/B, EV/EBITDA), profitability (ROE, ROA, margins), growth (revenue, earnings), financial health (D/E, current ratio)",
+    "ben_graham":        "30 pts: current ratio ≥2, D/E ≤0.5, EPS stability ×5yr, P/E < 1/(2×RF), P/B < 1.2, dividend history — strict value screens",
+    "warren_buffett":    "20 pts: ROIC vs WACC, FCF yield, brand/moat durability, earnings consistency, capital allocation quality",
+    "aswath_damodaran":  "20 pts: FCFF-DCF vs current price, ROIC>WACC spread, FCF margin trajectory, payout sustainability, growth quality",
+    "cathie_wood":       "20 pts (7/4/4/5): innovation proxy score, P/S vs growth rate, TAM addressable market, ecosystem & platform lock-in",
+    "michael_burry":     "20 pts (5/5/5/5): short interest (contrarian — high = bullish), insider activity, balance sheet leverage, macro risk score",
+    "technicals":        "20 pts: RSI-14 (4), MACD-12/26/9 (4), Bollinger Bands (4), Moving Averages SMA50/200 (5), Volume trend (3)",
+    "valuation":         "20 pts: DCF-FCFF (8), peer EV/EBITDA multiples (8), Graham Number (4) — weighted convergence",
+    "risk_manager":      "20 pts: annualized volatility (4), beta vs S&P (4), max drawdown (4), Sharpe ratio (4), Kelly criterion (4)",
+    "portfolio_manager": "LLM synthesis: integrates all 9 signals with contextual weighting → final BUY/HOLD/SELL + position sizing",
+}
+
 AGENT_ORDER = [
     "fundamentals",
     "ben_graham",
@@ -145,9 +158,25 @@ def build(wb, result):
     r += 1
     spacer(ws, r, 4); r += 1
 
-    col_hdr(ws, r, ["Agent", "Signal", "Confidence", "Score", "/Max", "Norm%", "Action", "Target"], C1)
+    col_hdr(ws, r, ["Agent", "Signal", "Confidence", "Score", "/Max", "Score%", "Action", "Target"], C1)
     ws.freeze_panes = f"B{r + 1}"
     r += 1
+
+    # ── Legend ────────────────────────────────────────────────────────────────
+    legend_rows = [
+        "How to read this table:",
+        "Score: raw points from the quantitative model (varies by agent: /30 Ben Graham, /20 most agents, 0-1 Fundamentals)",
+        "Score%: normalized score (Score / Max × 100) — enables cross-agent comparison on a uniform scale",
+        "Green ≥ 65%  |  Amber 45–64%  |  Red < 45%",
+    ]
+    for i, txt in enumerate(legend_rows):
+        bold = (i == 0)
+        ws.row_dimensions[r].height = 14
+        wc(ws, r, C1, f"  {txt}",
+           font=_f(8, bold, DARK_GRAY), bg=GRAY_LIGHT, align=AL_L)
+        merge(ws, r, C1, r, CE)
+        r += 1
+    spacer(ws, r, 4); r += 1
 
     for agent_id in AGENT_ORDER:
         sig = all_signals.get(agent_id)
@@ -177,7 +206,13 @@ def build(wb, result):
            font=_f(9, True, WHITE), bg=sig_bg, align=AL_C, border=BORDER_ALL)
         wc(ws, r, C1 + 2, f"{sig.confidence:.0%}",
            font=_f(9), bg=GRAY_LIGHT, align=AL_C, border=BORDER_ALL)
-        wc(ws, r, C1 + 3, _fmt_score(total, total_max),
+        # Show score as "16.0/20" in score cell; /Max col shows max for reference
+        score_display = (
+            f"{total:.2f}/{total_max:.1f}" if (total is not None and total_max and total_max <= 1.0)
+            else f"{total:.1f}/{total_max:.0f}" if (total is not None and total_max)
+            else _fmt_score(total, total_max)
+        )
+        wc(ws, r, C1 + 3, score_display,
            font=_f(9, True, WHITE), bg=sc_bg, align=AL_C, border=BORDER_ALL)
         wc(ws, r, C1 + 4, f"/{total_max:.0f}" if total_max else "—",
            font=_f(8, False, DARK_GRAY), bg=GRAY_LIGHT, align=AL_L, border=BORDER_ALL)
@@ -189,6 +224,15 @@ def build(wb, result):
         wc(ws, r, C1 + 7, pt_s,
            font=_f(9), bg=GRAY_LIGHT, align=AL_R, border=BORDER_ALL)
         r += 1
+
+        # ── Score methodology sub-row ─────────────────────────────────────────
+        criteria = SCORE_METHODOLOGY.get(agent_id)
+        if criteria:
+            ws.row_dimensions[r].height = 13
+            wc(ws, r, C1, f"  Methodology: {criteria}",
+               font=_f(7.5, False, MID_GRAY), bg=GRAY_LIGHT, align=AL_W, border=BORDER_ALL)
+            merge(ws, r, C1, r, CE)
+            r += 1
 
         # ── Pillar breakdown (quant agents with sub-scores) ──────────────────
         pillar_map = PILLAR_LABELS.get(agent_id)
@@ -261,7 +305,7 @@ def build(wb, result):
     # Footer
     ws.row_dimensions[r].height = 14
     wc(ws, r, C1,
-       "  Agent opinions are model outputs. Quant+LLM agents use deterministic scoring + LLM narrative.",
+       "  Agent outputs are model-generated and do not constitute investment advice. Quant+LLM agents use deterministic scoring + LLM narrative.",
        font=_f(8, False, MID_GRAY), bg=GRAY_LIGHT, align=AL_L)
     merge(ws, r, C1, r, CE)
 

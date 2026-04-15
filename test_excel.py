@@ -15,42 +15,44 @@ from excel.workbook import generate_report
 # ── Mock financial statements ──────────────────────────────────────────────────
 
 def _make_financials():
+    # Most recent first (API format) — 5 years: FY2024 → FY2020
     dates = [
         pd.Timestamp("2024-09-28"),
         pd.Timestamp("2023-09-30"),
         pd.Timestamp("2022-09-24"),
         pd.Timestamp("2021-09-25"),
+        pd.Timestamp("2020-09-26"),
     ]
 
     income = pd.DataFrame(
         {
-            "Total Revenue":    [391.0e9, 383.3e9, 394.3e9, 365.8e9],
-            "Gross Profit":     [180.7e9, 169.1e9, 170.8e9, 152.8e9],
-            "EBITDA":           [134.7e9, 125.8e9, 130.5e9, 111.4e9],
-            "Operating Income": [123.2e9, 114.3e9, 119.4e9, 109.0e9],
-            "Net Income":       [ 93.7e9,  97.0e9,  99.8e9,  94.7e9],
-            "Interest Expense": [ -3.9e9,  -3.9e9,  -2.8e9,  -2.6e9],
+            "Total Revenue":    [391.0e9, 383.3e9, 394.3e9, 365.8e9, 274.5e9],
+            "Gross Profit":     [180.7e9, 169.1e9, 170.8e9, 152.8e9, 104.9e9],
+            "EBITDA":           [134.7e9, 125.8e9, 130.5e9, 111.4e9,  77.3e9],
+            "Operating Income": [123.2e9, 114.3e9, 119.4e9, 109.0e9,  66.3e9],
+            "Net Income":       [ 93.7e9,  97.0e9,  99.8e9,  94.7e9,  57.4e9],
+            "Interest Expense": [ -3.9e9,  -3.9e9,  -2.8e9,  -2.6e9,  -2.9e9],
         },
         index=dates,
     ).T
 
     cash_flow = pd.DataFrame(
         {
-            "Operating Cash Flow":         [122.1e9, 113.0e9, 122.2e9, 104.0e9],
-            "Capital Expenditure":         [-9.4e9,  -10.9e9, -10.7e9, -11.1e9],
-            "Free Cash Flow":              [112.7e9, 102.1e9, 111.4e9,  92.9e9],
-            "Depreciation And Amortization":[11.4e9,  11.5e9,  11.1e9,   9.6e9],
+            "Operating Cash Flow":              [122.1e9, 113.0e9, 122.2e9, 104.0e9,  80.7e9],
+            "Capital Expenditure":              [ -9.4e9,  -10.9e9, -10.7e9, -11.1e9,  -7.3e9],
+            "Free Cash Flow":                   [112.7e9, 102.1e9, 111.4e9,  92.9e9,  73.4e9],
+            "Depreciation And Amortization":    [ 11.4e9,  11.5e9,  11.1e9,   9.6e9,  11.3e9],
         },
         index=dates,
     ).T
 
     balance_sheet = pd.DataFrame(
         {
-            "Cash Cash Equivalents And Short Term Investments": [65.2e9,  61.6e9,  48.3e9,  62.6e9],
-            "Total Debt":                                       [101.3e9, 109.6e9, 120.1e9, 124.7e9],
-            "Stockholders Equity":                              [ 56.9e9,  62.1e9,  50.7e9,  63.1e9],
-            "Current Assets":                                   [152.9e9, 143.7e9, 135.4e9, 134.8e9],
-            "Current Liabilities":                              [176.4e9, 145.3e9, 153.9e9, 125.5e9],
+            "Cash Cash Equivalents And Short Term Investments": [65.2e9,  61.6e9,  48.3e9,  62.6e9,  38.0e9],
+            "Total Debt":                                       [101.3e9, 109.6e9, 120.1e9, 124.7e9, 112.4e9],
+            "Stockholders Equity":                              [ 56.9e9,  62.1e9,  50.7e9,  63.1e9,  65.3e9],
+            "Current Assets":                                   [152.9e9, 143.7e9, 135.4e9, 134.8e9, 143.7e9],
+            "Current Liabilities":                              [176.4e9, 145.3e9, 153.9e9, 125.5e9, 105.4e9],
         },
         index=dates,
     ).T
@@ -74,6 +76,7 @@ def _make_peers():
             "pb_ratio":        12.1,
             "ps_ratio":        12.3,
             "ev_ebitda":       25.1,
+            "price_to_fcf":    41.2,
             "beta":             0.90,
             "dividend_yield":   0.72,
         },
@@ -85,6 +88,7 @@ def _make_peers():
             "pb_ratio":         6.5,
             "ps_ratio":         6.1,
             "ev_ebitda":       18.7,
+            "price_to_fcf":    28.5,
             "beta":             1.05,
             "dividend_yield":   0.52,
         },
@@ -96,6 +100,7 @@ def _make_peers():
             "pb_ratio":         8.2,
             "ps_ratio":        10.5,
             "ev_ebitda":       19.3,
+            "price_to_fcf":    24.8,
             "beta":             1.22,
             "dividend_yield":   0.40,
         },
@@ -107,6 +112,7 @@ def _make_peers():
             "pb_ratio":         9.3,
             "ps_ratio":         3.4,
             "ev_ebitda":       20.8,
+            "price_to_fcf":    52.1,
             "beta":             1.35,
             "dividend_yield":  None,
         },
@@ -357,5 +363,5 @@ def mock_result():
 
 if __name__ == "__main__":
     result = mock_result()
-    path   = generate_report(result)
+    path   = generate_report(result, "output/AAPL_v3_test3.xlsx")
     print(f"Report generated: {path}")

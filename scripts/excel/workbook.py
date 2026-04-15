@@ -1,10 +1,17 @@
 """
-Workbook Generator
+Workbook Generator  (v3)
 Entry point for Excel report generation.
 
 Usage:
     from excel.workbook import generate_report
     generate_report(result, "output/AAPL_analysis.xlsx")
+
+Sheet order:
+    1. Financials     — company profile, income statement, cash flow, balance sheet
+    2. Multiples      — peer-based valuation with user-editable weights
+    3. DCF Model      — full IB-style DCF with Excel formulas
+    4. Analyst Panel  — all 10 agents with scoring, pillar breakdown, reasoning
+    5. Summary        — investment decision, consensus, risk, PM thesis
 
 Author: Joaquin Abondano w/ Claude Code
 """
@@ -16,8 +23,8 @@ from datetime import date
 from openpyxl import Workbook
 
 from .sheets.financials  import build as build_financials
+from .sheets.multiples   import build as build_multiples
 from .sheets.dcf         import build as build_dcf
-from .sheets.technicals  import build as build_technicals
 from .sheets.analysts    import build as build_analysts
 from .sheets.summary     import build as build_summary
 
@@ -27,13 +34,6 @@ logger = logging.getLogger(__name__)
 def generate_report(result: dict, output_path: str = None) -> str:
     """
     Generate a multi-sheet Excel report from a run_analysis() result dict.
-
-    Sheet order:
-        1. Financials          — company profile, income statement, peer comparison
-        2. DCF Model           — year-by-year DCF with sensitivity table
-        3. Technical Indicators — RSI, MACD, Bollinger, MAs, Volume
-        4. Analyst Panel       — all 10 agents with pillar breakdown and reasoning
-        5. Summary             — investment decision, consensus, risk, PM thesis
 
     Parameters
     ----------
@@ -63,11 +63,11 @@ def generate_report(result: dict, output_path: str = None) -> str:
         del wb["Sheet"]
 
     sheets = [
-        ("Financials",          build_financials),
-        ("DCF Model",           build_dcf),
-        ("Technical Indicators",build_technicals),
-        ("Analyst Panel",       build_analysts),
-        ("Summary",             build_summary),
+        ("Financials",    build_financials),
+        ("Multiples",     build_multiples),
+        ("DCF Model",     build_dcf),
+        ("Analyst Panel", build_analysts),
+        ("Summary",       build_summary),
     ]
 
     for name, builder in sheets:

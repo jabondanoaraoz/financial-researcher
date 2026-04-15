@@ -1,11 +1,14 @@
 """
-Financials Sheet
-Company profile, income statement, cash flow, balance sheet, peer comparison.
+Financials Sheet  (v3)
+Company profile, income statement (5y), cash flow (5y), balance sheet (5y).
+Oldest year LEFT, most recent year RIGHT.
+Margin column (col H) uses Excel formulas referencing the data cells.
 
 Author: Joaquin Abondano w/ Claude Code
 """
 
 import math
+from openpyxl.utils import get_column_letter as _gcl
 
 from ..styles import (
     _f, fill, merge, wc, sec_hdr, col_hdr, spacer, hide_gridlines,
@@ -18,22 +21,34 @@ from ..styles import (
 
 _COLS = {
     "A": 2,   # spacer
-    "B": 24,  # label / ticker
-    "C": 13,  # FY1 / metric 1
-    "D": 13,  # FY2 / metric 2
-    "E": 13,  # FY3 / metric 3
-    "F": 13,  # FY4 / metric 4
-    "G": 11,  # margin col / extra metric
-    "H": 2,   # spacer
+    "B": 26,  # label
+    "C": 12,  # FY oldest
+    "D": 12,
+    "E": 12,
+    "F": 12,
+    "G": 12,  # FY most recent
+    "H": 10,  # margin / ratio col
+    "I": 2,   # spacer
 }
-C1 = 2   # col B
-CE = 7   # col G
+C1 = 2    # col B
+CE = 8    # col H
+N_YEARS = 5
+
+INPUT_YELLOW = "FFFF99"
+DATA_COL_START = C1 + 1   # col C = column index 3
+DATA_COL_END   = C1 + N_YEARS  # col G = column index 7 (most recent year)
+
+
+def _a(row, col, ar=False, ac=False):
+    """Excel cell address string, optionally absolute rows/cols."""
+    c = ("$" if ac else "") + _gcl(col)
+    r = ("$" if ar else "") + str(row)
+    return c + r
 
 
 # ── Formatters ────────────────────────────────────────────────────────────────
 
 def _b(v):
-    """Format number in billions."""
     if v is None or (isinstance(v, float) and math.isnan(v)):
         return "—"
     return f"${v / 1e9:.1f}B"
@@ -68,33 +83,46 @@ def _mcap(v):
 
 # ── DataFrame helpers ─────────────────────────────────────────────────────────
 
-def _get(df, row, col_idx=0):
-    """Safely get a value from a DataFrame by row label and column index."""
-    if df is None or df.empty or row not in df.index:
+def _get(df, row_key, col_idx=0):
+    if df is None or df.empty or row_key not in df.index:
         return None
     try:
-        v = float(df.iloc[df.index.get_loc(row), col_idx])
+        v = float(df.iloc[df.index.get_loc(row_key), col_idx])
         return None if math.isnan(v) else v
     except (TypeError, ValueError, IndexError):
         return None
 
 
-def _margin(numerator, denominator):
-    if numerator is None or denominator is None or denominator == 0:
-        return None
-    return (numerator / denominator) * 100
+def _reversed_series(df, row_key, n=5):
+    """Return up to n values oldest-first (reversed from DataFrame newest-first)."""
+    if df is None or df.empty or row_key not in df.index:
+        return [None] * n
+    vals = []
+    for v in df.loc[row_key].values[:n]:
+        try:
+            fv = float(v)
+            vals.append(None if math.isnan(fv) else fv)
+        except (TypeError, ValueError):
+            vals.append(None)
+    while len(vals) < n:
+        vals.append(None)
+    vals.reverse()
+    return vals
 
 
-def _col_labels(df, n=4):
-    """Return up to n column labels as year strings."""
+def _reversed_labels(df, n=5):
+    """Return up to n FY labels oldest-first."""
     if df is None or df.empty:
-        return []
+        return ["—"] * n
     labels = []
     for col in list(df.columns)[:n]:
         try:
-            labels.append(str(col.year))
+            labels.append(f"FY{col.year}")
         except AttributeError:
-            labels.append(str(col)[:4])
+            labels.append(str(col)[:6])
+    while len(labels) < n:
+        labels.insert(0, "—")
+    labels.reverse()
     return labels
 
 
@@ -108,17 +136,19 @@ def build(wb, result):
     for col, w in _COLS.items():
         ws.column_dimensions[col].width = w
 
-    ticker   = result.get("ticker", "")
-    info     = (result.get("company_data") or {}).get("info") or {}
-    km       = (result.get("company_data") or {}).get("key_metrics") or {}
-    fins     = result.get("financials") or {}
-    peers    = result.get("peers_data") or {}
+    ticker = result.get("ticker", "")
+    info   = (result.get("company_data") or {}).get("info") or {}
+    km     = (result.get("company_data") or {}).get("key_metrics") or {}
+    fins   = result.get("financials") or {}
 
     inc = fins.get("income_statement")
     cf  = fins.get("cash_flow")
     bs  = fins.get("balance_sheet")
 
-    years = _col_labels(inc, 4)
+    year_labels = _reversed_labels(inc, N_YEARS)
+
+    # Track row numbers for formula back-references
+    rows = {}
 
     r = 1
     spacer(ws, r, 8); r += 1
@@ -143,7 +173,7 @@ def build(wb, result):
 
     employees = info.get("employees")
     emp_s = f"{employees:,}" if employees else "—"
-    website  = info.get("website", "")
+    website = info.get("website", "")
     wc(ws, r, C1, f"  Employees: {emp_s}   |   {website}",
        font=_f(8, False, DARK_GRAY), bg=GRAY_LIGHT, align=AL_L)
     merge(ws, r, C1, r, CE)
@@ -169,26 +199,21 @@ def build(wb, result):
     ev      = km.get("enterprise_value")
 
     metrics_grid = [
-        # Row 1
-        [("Current Price",   _price(price)),
-         ("Market Cap",      _mcap(mkt_cap)),
-         ("Enterprise Value",_mcap(ev))],
-        # Row 2
-        [("P/E Ratio",       _mult(km.get("pe_ratio"))),
-         ("Forward P/E",     _mult(km.get("forward_pe"))),
-         ("PEG Ratio",       _num(km.get("peg_ratio"), 2))],
-        # Row 3
-        [("P/B Ratio",       _mult(km.get("pb_ratio"))),
-         ("P/S Ratio",       _mult(km.get("ps_ratio"))),
-         ("EV / EBITDA",     _mult(km.get("ev_ebitda")))],
-        # Row 4
-        [("Beta",            _num(km.get("beta"), 3)),
-         ("52W High",        _price(km.get("52w_high"))),
-         ("52W Low",         _price(km.get("52w_low")))],
-        # Row 5
-        [("Dividend Yield",  _pct(km.get("dividend_yield"))),
-         ("Short % Float",   _pct(km.get("short_percent_of_float"))),
-         ("Shares Out.",     _mcap(km.get("shares_outstanding")))],
+        [("Current Price",    _price(price)),
+         ("Market Cap",       _mcap(mkt_cap)),
+         ("Enterprise Value", _mcap(ev))],
+        [("P/E Ratio",        _mult(km.get("pe_ratio"))),
+         ("Forward P/E",      _mult(km.get("forward_pe"))),
+         ("PEG Ratio",        _num(km.get("peg_ratio"), 2))],
+        [("P/B Ratio",        _mult(km.get("pb_ratio"))),
+         ("P/S Ratio",        _mult(km.get("ps_ratio"))),
+         ("EV / EBITDA",      _mult(km.get("ev_ebitda")))],
+        [("Beta",             _num(km.get("beta"), 3)),
+         ("52W High",         _price(km.get("52w_high"))),
+         ("52W Low",          _price(km.get("52w_low")))],
+        [("Dividend Yield",   _pct(km.get("dividend_yield"))),
+         ("Short % Float",    _pct(km.get("short_percent_of_float"))),
+         ("Shares Out.",      _mcap(km.get("shares_outstanding")))],
     ]
 
     for row_data in metrics_grid:
@@ -197,183 +222,120 @@ def build(wb, result):
             c_lbl = C1 + i * 2
             c_val = c_lbl + 1
             wc(ws, r, c_lbl, lbl, font=_f(8.5, True), bg=BLUE_TINT, align=AL_L, border=BORDER_ALL)
-            wc(ws, r, c_val, val, font=_f(9, False),  bg=WHITE,     align=AL_R, border=BORDER_ALL)
+            wc(ws, r, c_val, val, font=_f(9, False),   bg=WHITE,     align=AL_R, border=BORDER_ALL)
         r += 1
 
     spacer(ws, r); r += 1
 
-    # ── Income Statement ──────────────────────────────────────────────────────
-    sec_hdr(ws, r, "Income Statement  (annual)", C1, CE); r += 1
-
-    yr_headers = ["Metric"] + years + ["Margin (MR)"]
-    col_hdr(ws, r, yr_headers, C1); r += 1
-
-    def _inc_row(label, row_key, is_margin=False, margin_row=None, alt=False):
+    # ── Helper to write one financial row ──────────────────────────────────────
+    def _fin_row(label, row_key, df_src, alt=False):
+        """Write a financial row with 5 numeric data cols (in $B). Returns row number."""
         nonlocal r
         bg = GRAY_LIGHT if alt else WHITE
         ws.row_dimensions[r].height = 16
-
         wc(ws, r, C1, label, font=_f(9, True), bg=BLUE_TINT, align=AL_LI, border=BORDER_ALL)
-
-        for i, _ in enumerate(years):
-            v = _get(inc, row_key, i)
-            wc(ws, r, C1 + 1 + i,
-               _b(v) if not is_margin else _pct(v),
-               font=_f(9), bg=bg, align=AL_R, border=BORDER_ALL)
-
-        # Margin column (most recent)
-        if margin_row and inc is not None:
-            num = _get(inc, row_key, 0)
-            den = _get(inc, margin_row, 0)
-            mgn = _margin(num, den)
-            wc(ws, r, C1 + 1 + len(years),
-               _pct(mgn), font=_f(9, True), bg=BLUE_TINT, align=AL_C, border=BORDER_ALL)
-        else:
-            wc(ws, r, C1 + 1 + len(years), "—",
-               font=_f(9), bg=bg, align=AL_C, border=BORDER_ALL)
+        vals = _reversed_series(df_src, row_key, N_YEARS)
+        for i, v in enumerate(vals):
+            cell = ws.cell(row=r, column=C1 + 1 + i)
+            cell.value = v / 1e9 if v is not None else None  # store numeric billions
+            cell.font = _f(9); cell.fill = fill(bg)
+            cell.alignment = AL_R; cell.border = BORDER_ALL
+            cell.number_format = '#,##0.0'
+        # Margin col placeholder (H)
+        wc(ws, r, CE, "—", font=_f(9), bg=bg, align=AL_C, border=BORDER_ALL)
+        this_row = r
         r += 1
+        return this_row
 
-    _inc_row("Revenue",          "Total Revenue",    alt=False)
-    _inc_row("Gross Profit",     "Gross Profit",     margin_row="Total Revenue", alt=True)
-    _inc_row("EBITDA",           "EBITDA",           margin_row="Total Revenue", alt=False)
-    _inc_row("Operating Income", "Operating Income", margin_row="Total Revenue", alt=True)
-    _inc_row("Net Income",       "Net Income",       margin_row="Total Revenue", alt=False)
+    def _set_margin_formula(data_row, ref_row):
+        """Overwrite col H of data_row with =G{data_row}/G{ref_row}."""
+        formula = f"={_a(data_row, DATA_COL_END)}/{_a(ref_row, DATA_COL_END)}"
+        cell = ws.cell(row=data_row, column=CE, value=formula)
+        cell.font       = _f(9, True)
+        cell.fill       = fill(BLUE_TINT)
+        cell.alignment  = AL_C
+        cell.border     = BORDER_ALL
+        cell.number_format = "0.0%"
+
+    # ── Income Statement ──────────────────────────────────────────────────────
+    sec_hdr(ws, r, "Income Statement  (annual, $B)", C1, CE); r += 1
+    col_hdr(ws, r, ["Metric"] + year_labels + ["Margin (MRY)"], C1)
+    r += 1
+
+    rows["revenue"]     = _fin_row("Revenue",          "Total Revenue",    inc, alt=False)
+    rows["gross_profit"]= _fin_row("Gross Profit",      "Gross Profit",     inc, alt=True)
+    rows["ebitda"]      = _fin_row("EBITDA",            "EBITDA",           inc, alt=False)
+    rows["ebit"]        = _fin_row("Operating Income",  "Operating Income", inc, alt=True)
+    rows["net_income"]  = _fin_row("Net Income",        "Net Income",       inc, alt=False)
+
+    # Set margin formulas (all reference revenue row most-recent col G)
+    _set_margin_formula(rows["gross_profit"], rows["revenue"])
+    _set_margin_formula(rows["ebitda"],       rows["revenue"])
+    _set_margin_formula(rows["ebit"],         rows["revenue"])
+    _set_margin_formula(rows["net_income"],   rows["revenue"])
 
     spacer(ws, r); r += 1
 
     # ── Cash Flow ─────────────────────────────────────────────────────────────
-    sec_hdr(ws, r, "Cash Flow  (annual)", C1, CE); r += 1
-    col_hdr(ws, r, ["Metric"] + years + ["FCF Margin"], C1); r += 1
+    sec_hdr(ws, r, "Cash Flow  (annual, $B)", C1, CE); r += 1
+    col_hdr(ws, r, ["Metric"] + year_labels + ["FCF Margin"], C1)
+    r += 1
 
-    def _cf_row(label, row_key, margin_row=None, alt=False):
-        nonlocal r
-        bg = GRAY_LIGHT if alt else WHITE
-        ws.row_dimensions[r].height = 16
-        wc(ws, r, C1, label, font=_f(9, True), bg=BLUE_TINT, align=AL_LI, border=BORDER_ALL)
-        for i, _ in enumerate(years):
-            v = _get(cf, row_key, i)
-            wc(ws, r, C1 + 1 + i, _b(v), font=_f(9), bg=bg, align=AL_R, border=BORDER_ALL)
-        if margin_row and cf is not None and inc is not None:
-            num = _get(cf, row_key, 0)
-            den = _get(inc, margin_row, 0)
-            wc(ws, r, C1 + 1 + len(years),
-               _pct(_margin(num, den)), font=_f(9, True), bg=BLUE_TINT, align=AL_C, border=BORDER_ALL)
-        else:
-            wc(ws, r, C1 + 1 + len(years), "—",
-               font=_f(9), bg=bg, align=AL_C, border=BORDER_ALL)
-        r += 1
+    rows["ocf"]   = _fin_row("Operating Cash Flow", "Operating Cash Flow", cf, alt=False)
+    rows["capex"] = _fin_row("Capital Expenditure", "Capital Expenditure", cf, alt=True)
+    rows["fcf"]   = _fin_row("Free Cash Flow",       "Free Cash Flow",     cf, alt=False)
 
-    _cf_row("Operating Cash Flow", "Operating Cash Flow",  alt=False)
-    _cf_row("Capital Expenditure", "Capital Expenditure",  alt=True)
-    _cf_row("Free Cash Flow",      "Free Cash Flow",
-            margin_row="Total Revenue", alt=False)
+    # FCF margin formula: =G{fcf}/G{rev}
+    _set_margin_formula(rows["fcf"], rows["revenue"])
 
     spacer(ws, r); r += 1
 
     # ── Balance Sheet ─────────────────────────────────────────────────────────
-    sec_hdr(ws, r, "Balance Sheet Highlights  (most recent year)", C1, CE); r += 1
+    sec_hdr(ws, r, "Balance Sheet Evolution  (annual, $B)", C1, CE); r += 1
+    col_hdr(ws, r, ["Metric"] + year_labels + ["Ratio (MRY)"], C1)
+    r += 1
 
-    bs_items = [
-        ("Cash & Short-Term Investments",  "Cash Cash Equivalents And Short Term Investments", False),
-        ("Total Debt",                     "Total Debt",                                       False),
-        ("Stockholders Equity",            "Stockholders Equity",                              False),
-        ("Current Assets",                 "Current Assets",                                   False),
-        ("Current Liabilities",            "Current Liabilities",                              False),
-    ]
+    rows["cash"]         = _fin_row("Cash & Equivalents",
+                                     "Cash Cash Equivalents And Short Term Investments",
+                                     bs, alt=False)
+    rows["debt"]         = _fin_row("Total Debt",         "Total Debt",         bs, alt=True)
+    rows["equity"]       = _fin_row("Stockholders Equity","Stockholders Equity",bs, alt=False)
+    rows["current_assets"]    = _fin_row("Current Assets",     "Current Assets",     bs, alt=True)
+    rows["current_liabilities"]= _fin_row("Current Liabilities","Current Liabilities",bs, alt=False)
 
-    for i, (lbl, row_key, _) in enumerate(bs_items):
-        alt = (i % 2 == 0)
-        bg  = GRAY_LIGHT if alt else WHITE
-        v   = _get(bs, row_key, 0)
-        ws.row_dimensions[r].height = 16
-        wc(ws, r, C1,     lbl,   font=_f(9, True), bg=BLUE_TINT, align=AL_LI, border=BORDER_ALL)
-        wc(ws, r, C1 + 1, _b(v), font=_f(9),       bg=bg,        align=AL_R,  border=BORDER_ALL)
-        merge(ws, r, C1 + 1, r, CE)
-        r += 1
+    # Current Ratio row — formula only in H col; fill "—" in data cols
+    ws.row_dimensions[r].height = 16
+    wc(ws, r, C1, "Current Ratio", font=_f(9, True), bg=BLUE_TINT, align=AL_LI, border=BORDER_ALL)
+    for i in range(N_YEARS):
+        wc(ws, r, C1 + 1 + i, "—", font=_f(9), bg=GRAY_LIGHT, align=AL_R, border=BORDER_ALL)
+    cr_formula = f"={_a(rows['current_assets'], DATA_COL_END)}/{_a(rows['current_liabilities'], DATA_COL_END)}"
+    cell = ws.cell(row=r, column=CE, value=cr_formula)
+    cell.font = _f(9, True); cell.fill = fill(BLUE_TINT)
+    cell.alignment = AL_C; cell.border = BORDER_ALL; cell.number_format = "0.00"
+    rows["current_ratio"] = r
+    r += 1
 
-    # Net Debt
-    cash_v = _get(bs, "Cash Cash Equivalents And Short Term Investments", 0)
-    debt_v = _get(bs, "Total Debt", 0)
-    if cash_v is not None and debt_v is not None:
-        nd = debt_v - cash_v
-        ws.row_dimensions[r].height = 16
-        wc(ws, r, C1,     "Net Debt", font=_f(9, True, WHITE), bg=NAVY_MED, align=AL_LI, border=BORDER_ALL)
-        wc(ws, r, C1 + 1, _b(nd),    font=_f(9, True, WHITE), bg=NAVY_MED, align=AL_R,  border=BORDER_ALL)
-        merge(ws, r, C1 + 1, r, CE)
-        r += 1
+    # Net Debt — each year col formula: =debt_cell - cash_cell
+    ws.row_dimensions[r].height = 16
+    wc(ws, r, C1, "Net Debt", font=_f(9, True, WHITE), bg=NAVY_MED, align=AL_LI, border=BORDER_ALL)
+    for i in range(N_YEARS):
+        col_i = C1 + 1 + i
+        nd_formula = f"={_a(rows['debt'], col_i)}-{_a(rows['cash'], col_i)}"
+        cell = ws.cell(row=r, column=col_i, value=nd_formula)
+        cell.font = _f(9, False, WHITE); cell.fill = fill(NAVY_MED)
+        cell.alignment = AL_R; cell.border = BORDER_ALL
+        cell.number_format = '#,##0.0'
+    wc(ws, r, CE, "—", font=_f(9, False, WHITE), bg=NAVY_MED, align=AL_C, border=BORDER_ALL)
+    rows["net_debt"] = r
+    r += 1
 
     spacer(ws, r); r += 1
-
-    # ── Peer Comparison ───────────────────────────────────────────────────────
-    if peers:
-        sec_hdr(ws, r, "Peer Comparison  (trading multiples)", C1, CE); r += 1
-
-        peer_metrics = ["Mkt Cap", "P/E", "Fwd P/E", "P/B", "P/S", "EV/EBITDA", "Beta", "Yield"]
-        col_hdr(ws, r, ["Ticker"] + peer_metrics, C1); r += 1
-
-        def _peer_row(tkr, data, highlight=False):
-            nonlocal r
-            bg_lbl = NAVY_MED    if highlight else BLUE_TINT
-            bg_val = BLUE_ACC    if highlight else WHITE
-            ft_lbl = _f(9, True, WHITE) if highlight else _f(9, True)
-            ft_val = _f(9, True, WHITE) if highlight else _f(9)
-            ws.row_dimensions[r].height = 17
-            wc(ws, r, C1, tkr,
-               font=ft_lbl, bg=bg_lbl, align=AL_C, border=BORDER_ALL)
-            vals = [
-                _mcap(data.get("market_cap")),
-                _mult(data.get("pe_ratio")),
-                _mult(data.get("forward_pe")),
-                _mult(data.get("pb_ratio")),
-                _mult(data.get("ps_ratio")),
-                _mult(data.get("ev_ebitda")),
-                _num(data.get("beta"), 2),
-                _pct(data.get("dividend_yield")),
-            ]
-            for i, v in enumerate(vals):
-                wc(ws, r, C1 + 1 + i, v,
-                   font=ft_val, bg=bg_val, align=AL_R, border=BORDER_ALL)
-            r += 1
-
-        # Target company row (highlighted)
-        _peer_row(ticker, {
-            "market_cap":    mkt_cap,
-            "pe_ratio":      km.get("pe_ratio"),
-            "forward_pe":    km.get("forward_pe"),
-            "pb_ratio":      km.get("pb_ratio"),
-            "ps_ratio":      km.get("ps_ratio"),
-            "ev_ebitda":     km.get("ev_ebitda"),
-            "beta":          km.get("beta"),
-            "dividend_yield": km.get("dividend_yield"),
-        }, highlight=True)
-
-        # Peer rows
-        for i, (pt, pd_) in enumerate(peers.items()):
-            alt = (i % 2 == 0)
-            bg  = GRAY_LIGHT if alt else WHITE
-            ws.row_dimensions[r].height = 17
-            wc(ws, r, C1, pt, font=_f(9, True), bg=BLUE_TINT, align=AL_C, border=BORDER_ALL)
-            vals = [
-                _mcap(pd_.get("market_cap")),
-                _mult(pd_.get("pe_ratio")),
-                _mult(pd_.get("forward_pe")),
-                _mult(pd_.get("pb_ratio")),
-                _mult(pd_.get("ps_ratio")),
-                _mult(pd_.get("ev_ebitda")),
-                _num(pd_.get("beta"), 2),
-                _pct(pd_.get("dividend_yield")),
-            ]
-            for j, v in enumerate(vals):
-                wc(ws, r, C1 + 1 + j, v,
-                   font=_f(9), bg=bg, align=AL_R, border=BORDER_ALL)
-            r += 1
-
-        spacer(ws, r); r += 1
 
     # Footer
     ws.row_dimensions[r].height = 14
     wc(ws, r, C1,
-       "  Source: yfinance / Alpha Vantage. Financial data as of latest reported fiscal year.",
+       "  Source: yfinance / Alpha Vantage. Data ordered oldest → newest (left → right). "
+       "Margin formulas in col H reference most recent year (col G).",
        font=_f(8, False, MID_GRAY), bg=GRAY_LIGHT, align=AL_L)
     merge(ws, r, C1, r, CE)
 

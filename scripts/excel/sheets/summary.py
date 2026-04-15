@@ -133,6 +133,23 @@ def build(wb, result):
        font=_f(12, True, WHITE), bg=sig_bg, align=AL_C)
     r += 1
 
+    # Decision justification row
+    n_bull_d = pm_cons.get("bullish", 0)
+    n_neut_d = pm_cons.get("neutral", 0)
+    n_bear_d = pm_cons.get("bearish", 0)
+    total_d  = n_bull_d + n_neut_d + n_bear_d or 1
+    majority_pct = n_bull_d / total_d if pm_signal == "bullish" else n_bear_d / total_d
+    conv_strength = "strong" if majority_pct > 0.60 else "moderate"
+    ws.row_dimensions[r].height = 16
+    justif_text = (
+        f"  Based on: {n_bull_d} bullish, {n_neut_d} neutral, {n_bear_d} bearish  "
+        f"— {conviction.upper()} conviction = {conv_strength} majority"
+    )
+    wc(ws, r, C1, justif_text,
+       font=_f(8.5, False, DARK_GRAY), bg=GRAY_LIGHT, align=AL_L)
+    merge(ws, r, C1, r, CE)
+    r += 1
+
     # Price snapshot
     ws.row_dimensions[r].height = 18
     wc(ws, r, C1,     "Current Price",         font=_f(9, True),        bg=BLUE_TINT, align=AL_LI, border=BORDER_ALL)
@@ -183,6 +200,41 @@ def build(wb, result):
        font=_f(10, True, WHITE), bg=NAVY_MED, align=AL_C, border=BORDER_ALL)
     merge(ws, r, C1 + 4, r, CE)
     r += 1
+
+    # ── Per-agent breakdown table ──────────────────────────────────────────
+    ws.row_dimensions[r].height = 15
+    for ci, hdr in enumerate(["Agente", "Señal", "Confianza", "Score%", "Acción"]):
+        wc(ws, r, C1 + ci, hdr,
+           font=_f(8, True, WHITE), bg=NAVY_MED, align=AL_C, border=BORDER_ALL)
+    r += 1
+
+    _AGENT_ORDER_9 = [
+        "fundamentals", "ben_graham", "warren_buffett", "aswath_damodaran",
+        "cathie_wood", "michael_burry", "technicals", "valuation", "risk_manager",
+    ]
+    for idx, aid in enumerate(_AGENT_ORDER_9):
+        sig_a = signals.get(aid)
+        if sig_a is None:
+            continue
+        sc_a = sig_a.scores or {}
+        tot_a = sc_a.get("total")
+        max_a = sc_a.get("total_max")
+        if aid == "fundamentals" and tot_a is None:
+            tot_a = sig_a.confidence; max_a = 1.0
+        norm_a = (tot_a / max_a) if (tot_a is not None and max_a) else None
+        sig_bg_a = SIGNAL_BG.get(sig_a.signal, NAVY_MED)
+        act_bg_a = ACTION_BG.get(sig_a.target_action, NAVY_MED)
+        row_bg   = GRAY_LIGHT if idx % 2 == 0 else WHITE
+        ws.row_dimensions[r].height = 15
+        wc(ws, r, C1,     sig_a.agent_name,          font=_f(8.5, True),        bg=row_bg,    align=AL_L, border=BORDER_ALL)
+        wc(ws, r, C1 + 1, sig_a.signal.upper(),       font=_f(8, True, WHITE),   bg=sig_bg_a,  align=AL_C, border=BORDER_ALL)
+        wc(ws, r, C1 + 2, f"{sig_a.confidence:.0%}",  font=_f(8),                bg=row_bg,    align=AL_C, border=BORDER_ALL)
+        norm_s_a = f"{norm_a:.0%}" if norm_a is not None else "—"
+        wc(ws, r, C1 + 3, norm_s_a,                   font=_f(8),                bg=row_bg,    align=AL_C, border=BORDER_ALL)
+        wc(ws, r, C1 + 4, (sig_a.target_action or "—").upper(),
+                                                       font=_f(8, True, WHITE),   bg=act_bg_a,  align=AL_C, border=BORDER_ALL)
+        r += 1
+
     spacer(ws, r); r += 1
 
     # ── Risk Summary ──────────────────────────────────────────────────────
@@ -213,16 +265,35 @@ def build(wb, result):
     merge(ws, r, C1 + 3, r, CE)
     r += 1
 
+    # Max position explanation
+    ws.row_dimensions[r].height = 13
+    wc(ws, r, C1,
+       f"  Max Position derived from Kelly Criterion (Risk Manager): F = (μ − rf) / σ²  "
+       f"→  recommended max portfolio allocation based on 2Y return, volatility, and risk-free rate.",
+       font=_f(7.5, False, DARK_GRAY), bg=GRAY_LIGHT, align=AL_W)
+    merge(ws, r, C1, r, CE)
+    r += 1
+
     risk_rows = [
         ("Annualized Volatility",  _pct(risk_m.get("annualized_volatility", 0) * 100 if risk_m.get("annualized_volatility") else None), False),
         ("Annualized Return (2Y)", _pct(risk_m.get("annualized_return", 0) * 100    if risk_m.get("annualized_return") else None),    True),
         ("Beta vs S&P 500",        _num(risk_m.get("beta"), 3),                                                                        False),
         ("Max Drawdown (2Y)",      _pct(risk_m.get("max_drawdown", 0) * 100         if risk_m.get("max_drawdown") else None),          True),
         ("Sharpe Ratio",           _num(risk_m.get("sharpe_proxy"), 2),                                                                False),
-        ("Kelly Fraction",         _pct(risk_m.get("kelly_fraction", 0) * 100       if risk_m.get("kelly_fraction") else None),        True),
+        # Kelly Fraction intentionally omitted from display
     ]
     for lbl, val, alt in risk_rows:
         r = _kv(ws, r, lbl, val, alt=alt)
+
+    # Risk justification sub-row
+    rm_risks = (rm_sig.key_risks if rm_sig else None) or []
+    if rm_risks:
+        ws.row_dimensions[r].height = 18
+        risk_drivers = "  Key Risk Drivers: " + "  |  ".join(rm_risks[:2])
+        wc(ws, r, C1, risk_drivers,
+           font=_f(8, False, DARK_GRAY), bg=GRAY_LIGHT, align=AL_W)
+        merge(ws, r, C1, r, CE)
+        r += 1
 
     spacer(ws, r); r += 1
 
