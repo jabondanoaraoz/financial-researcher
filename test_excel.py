@@ -6,9 +6,114 @@ Run from the project root: python test_excel.py
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "scripts"))
 
+import pandas as pd
+
 from agents.base_agent import AgentSignal
 from excel.workbook import generate_report
 
+
+# ── Mock financial statements ──────────────────────────────────────────────────
+
+def _make_financials():
+    dates = [
+        pd.Timestamp("2024-09-28"),
+        pd.Timestamp("2023-09-30"),
+        pd.Timestamp("2022-09-24"),
+        pd.Timestamp("2021-09-25"),
+    ]
+
+    income = pd.DataFrame(
+        {
+            "Total Revenue":    [391.0e9, 383.3e9, 394.3e9, 365.8e9],
+            "Gross Profit":     [180.7e9, 169.1e9, 170.8e9, 152.8e9],
+            "EBITDA":           [134.7e9, 125.8e9, 130.5e9, 111.4e9],
+            "Operating Income": [123.2e9, 114.3e9, 119.4e9, 109.0e9],
+            "Net Income":       [ 93.7e9,  97.0e9,  99.8e9,  94.7e9],
+            "Interest Expense": [ -3.9e9,  -3.9e9,  -2.8e9,  -2.6e9],
+        },
+        index=dates,
+    ).T
+
+    cash_flow = pd.DataFrame(
+        {
+            "Operating Cash Flow":         [122.1e9, 113.0e9, 122.2e9, 104.0e9],
+            "Capital Expenditure":         [-9.4e9,  -10.9e9, -10.7e9, -11.1e9],
+            "Free Cash Flow":              [112.7e9, 102.1e9, 111.4e9,  92.9e9],
+            "Depreciation And Amortization":[11.4e9,  11.5e9,  11.1e9,   9.6e9],
+        },
+        index=dates,
+    ).T
+
+    balance_sheet = pd.DataFrame(
+        {
+            "Cash Cash Equivalents And Short Term Investments": [65.2e9,  61.6e9,  48.3e9,  62.6e9],
+            "Total Debt":                                       [101.3e9, 109.6e9, 120.1e9, 124.7e9],
+            "Stockholders Equity":                              [ 56.9e9,  62.1e9,  50.7e9,  63.1e9],
+            "Current Assets":                                   [152.9e9, 143.7e9, 135.4e9, 134.8e9],
+            "Current Liabilities":                              [176.4e9, 145.3e9, 153.9e9, 125.5e9],
+        },
+        index=dates,
+    ).T
+
+    return {
+        "income_statement": income,
+        "cash_flow":        cash_flow,
+        "balance_sheet":    balance_sheet,
+    }
+
+
+# ── Mock peers data ────────────────────────────────────────────────────────────
+
+def _make_peers():
+    return {
+        "MSFT": {
+            "current_price":  415.50,
+            "market_cap":     3.09e12,
+            "pe_ratio":        34.5,
+            "forward_pe":      29.2,
+            "pb_ratio":        12.1,
+            "ps_ratio":        12.3,
+            "ev_ebitda":       25.1,
+            "beta":             0.90,
+            "dividend_yield":   0.72,
+        },
+        "GOOGL": {
+            "current_price":  174.10,
+            "market_cap":     2.15e12,
+            "pe_ratio":        22.5,
+            "forward_pe":      18.8,
+            "pb_ratio":         6.5,
+            "ps_ratio":         6.1,
+            "ev_ebitda":       18.7,
+            "beta":             1.05,
+            "dividend_yield":   0.52,
+        },
+        "META": {
+            "current_price":  512.30,
+            "market_cap":     1.31e12,
+            "pe_ratio":        26.1,
+            "forward_pe":      22.4,
+            "pb_ratio":         8.2,
+            "ps_ratio":        10.5,
+            "ev_ebitda":       19.3,
+            "beta":             1.22,
+            "dividend_yield":   0.40,
+        },
+        "AMZN": {
+            "current_price":  201.40,
+            "market_cap":     2.09e12,
+            "pe_ratio":        43.2,
+            "forward_pe":      32.1,
+            "pb_ratio":         9.3,
+            "ps_ratio":         3.4,
+            "ev_ebitda":       20.8,
+            "beta":             1.35,
+            "dividend_yield":  None,
+        },
+    }
+
+
+# ── Mock agent signals ─────────────────────────────────────────────────────────
 
 def mock_result():
     def sig(aid, name, signal, conf, scores, reasoning, risks, action, pt=None):
@@ -22,8 +127,15 @@ def mock_result():
     agent_signals = {
         "fundamentals": sig(
             "fundamentals", "Fundamentals Analyst", "bullish", 0.72,
-            {"total": 0.72, "total_max": 1.0},
-            "Strong revenue growth, healthy gross margins above 40%, improving ROE trend. Balance sheet remains solid with manageable debt levels.",
+            {
+                "total": 0.72, "total_max": 1.0,
+                "valuation":     {"signal": "bearish",  "score": 0.42},
+                "profitability": {"signal": "bullish",  "score": 0.88},
+                "growth":        {"signal": "neutral",  "score": 0.61},
+                "health":        {"signal": "bullish",  "score": 0.74},
+            },
+            "Strong revenue growth, healthy gross margins above 40%, improving ROE trend. "
+            "Balance sheet remains solid with manageable debt levels.",
             ["Margin compression risk from increased R&D", "Revenue concentration in iPhone"],
             "buy",
         ),
@@ -74,7 +186,23 @@ def mock_result():
         ),
         "technicals": sig(
             "technicals", "Technical Analyst", "bullish", 0.66,
-            {"total": 13.5, "total_max": 20.0},
+            {
+                "total": 13.5, "total_max": 20.0,
+                "rsi":             {"score": 1.0, "max": 4,
+                    "detail": {"rsi": {"value": "58.0 — mildly overbought", "pts": 1.0, "max": 4}}},
+                "macd":            {"score": 4.0, "max": 4,
+                    "detail": {"macd": {"value": "MACD 1.23 | Signal 0.98 | Hist 0.250 → bullish & accelerating", "pts": 4.0, "max": 4}}},
+                "bollinger":       {"score": 2.0, "max": 4,
+                    "detail": {"bollinger": {"value": "price $196.45 | upper $201.30 lower $182.10 → middle zone", "pts": 2.0, "max": 4}}},
+                "moving_averages": {"score": 5.0, "max": 5,
+                    "detail": {
+                        "sma_cross":        {"value": "SMA50=188.20 SMA200=175.40 → golden cross (SMA50 > SMA200)", "pts": 2.0, "max": 2},
+                        "price_vs_sma50":   {"value": "4.4% above SMA50 ($188.20)", "pts": 1.5, "max": 1.5},
+                        "price_vs_sma200":  {"value": "12.0% above SMA200 ($175.40)", "pts": 1.5, "max": 1.5},
+                    }},
+                "volume":          {"score": 1.5, "max": 3,
+                    "detail": {"volume_trend": {"value": "normal (0.97x 20-day avg)", "pts": 1.5, "max": 3}}},
+            },
             "Price above both SMA50 and SMA200 — trend is intact. RSI at 58 — not overbought. "
             "MACD positive and widening. Volume profile supports the current move.",
             ["RSI approaching overbought on weekly timeframe", "Key support at $185 — break would be bearish"],
@@ -174,6 +302,9 @@ def mock_result():
                 "industry":    "Consumer Electronics",
                 "exchange":    "NASDAQ",
                 "country":     "United States",
+                "website":     "https://www.apple.com",
+                "employees":   161000,
+                "market_cap":  3.02e12,
                 "description": (
                     "Apple Inc. designs, manufactures, and markets smartphones, personal computers, tablets, "
                     "wearables, and accessories worldwide. The company offers iPhone, Mac, iPad, and Apple Watch "
@@ -182,23 +313,28 @@ def mock_result():
                     "AppleCare, generating high-margin recurring revenue. The company is headquartered in "
                     "Cupertino, California."
                 ),
-                "employees":   161000,
-                "market_cap":  3.02e12,
             },
             "key_metrics": {
-                "current_price":  196.45,
-                "pe_ratio":       29.9,
-                "forward_pe":     27.1,
-                "pb_ratio":       47.5,
-                "ps_ratio":       7.9,
-                "ev_ebitda":      22.5,
-                "beta":           1.21,
-                "52w_high":       237.23,
-                "52w_low":        164.08,
-                "dividend_yield": 0.53,
+                "current_price":          196.45,
+                "pe_ratio":                29.9,
+                "forward_pe":              27.1,
+                "pb_ratio":                47.5,
+                "ps_ratio":                 7.9,
+                "peg_ratio":                2.8,
+                "ev_ebitda":               22.5,
+                "beta":                     1.21,
+                "52w_high":               237.23,
+                "52w_low":                164.08,
+                "dividend_yield":           0.53,
+                "shares_outstanding":       15.1e9,
+                "enterprise_value":          3.3e12,
+                "short_percent_of_float":    0.71,
             },
             "macro": {},
         },
+        "financials":    _make_financials(),
+        "peers_data":    _make_peers(),
+        "risk_free_rate": 0.043,
         "agent_signals":      agent_signals,
         "portfolio_decision": pm,
         "risk_metrics": {
@@ -211,9 +347,9 @@ def mock_result():
             "max_position_size_pct": 10.2,
         },
         "consensus": {
-            "bullish":       5,
-            "neutral":       2,
-            "bearish":       2,
+            "bullish":      5,
+            "neutral":      2,
+            "bearish":      2,
             "avg_score_20": 13.1,
         },
     }

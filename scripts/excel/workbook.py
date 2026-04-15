@@ -15,10 +15,11 @@ from datetime import date
 
 from openpyxl import Workbook
 
-from .sheets.summary   import build as build_summary
-from .sheets.analysts  import build as build_analysts
-from .sheets.valuation import build as build_valuation
-from .sheets.risk      import build as build_risk
+from .sheets.financials  import build as build_financials
+from .sheets.dcf         import build as build_dcf
+from .sheets.technicals  import build as build_technicals
+from .sheets.analysts    import build as build_analysts
+from .sheets.summary     import build as build_summary
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,13 @@ logger = logging.getLogger(__name__)
 def generate_report(result: dict, output_path: str = None) -> str:
     """
     Generate a multi-sheet Excel report from a run_analysis() result dict.
+
+    Sheet order:
+        1. Financials          — company profile, income statement, peer comparison
+        2. DCF Model           — year-by-year DCF with sensitivity table
+        3. Technical Indicators — RSI, MACD, Bollinger, MAs, Volume
+        4. Analyst Panel       — all 10 agents with pillar breakdown and reasoning
+        5. Summary             — investment decision, consensus, risk, PM thesis
 
     Parameters
     ----------
@@ -42,7 +50,6 @@ def generate_report(result: dict, output_path: str = None) -> str:
     ticker = result.get("ticker", "TICKER")
 
     if output_path is None:
-        # Resolve output/ relative to this file's location (scripts/excel/)
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         out_dir  = os.path.join(base_dir, "output")
         os.makedirs(out_dir, exist_ok=True)
@@ -52,33 +59,23 @@ def generate_report(result: dict, output_path: str = None) -> str:
     logger.info(f"[{ticker}] Generating Excel report → {output_path}")
 
     wb = Workbook()
-    # Remove the default empty sheet
     if "Sheet" in wb.sheetnames:
         del wb["Sheet"]
 
-    try:
-        build_summary(wb, result)
-        logger.info(f"[{ticker}] Sheet 1 (Summary) done.")
-    except Exception as e:
-        logger.error(f"[{ticker}] Summary sheet failed: {e}")
+    sheets = [
+        ("Financials",          build_financials),
+        ("DCF Model",           build_dcf),
+        ("Technical Indicators",build_technicals),
+        ("Analyst Panel",       build_analysts),
+        ("Summary",             build_summary),
+    ]
 
-    try:
-        build_analysts(wb, result)
-        logger.info(f"[{ticker}] Sheet 2 (Analyst Panel) done.")
-    except Exception as e:
-        logger.error(f"[{ticker}] Analyst Panel sheet failed: {e}")
-
-    try:
-        build_valuation(wb, result)
-        logger.info(f"[{ticker}] Sheet 3 (Valuation) done.")
-    except Exception as e:
-        logger.error(f"[{ticker}] Valuation sheet failed: {e}")
-
-    try:
-        build_risk(wb, result)
-        logger.info(f"[{ticker}] Sheet 4 (Risk Profile) done.")
-    except Exception as e:
-        logger.error(f"[{ticker}] Risk Profile sheet failed: {e}")
+    for name, builder in sheets:
+        try:
+            builder(wb, result)
+            logger.info(f"[{ticker}] Sheet '{name}' done.")
+        except Exception as e:
+            logger.error(f"[{ticker}] Sheet '{name}' failed: {e}", exc_info=True)
 
     wb.save(output_path)
     logger.info(f"[{ticker}] Report saved → {output_path}")
