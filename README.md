@@ -187,6 +187,6 @@ This tool is for **educational and research purposes only**. The outputs (agent 
 
 **Joaquín Abondano Araoz** - Financial Modeling & Valuation · Value Investing · Data Analytics · AI & ML
 
-[Website](https://www.joaquinabondano.com) · [LinkedIn](https://www.linkedin.com/in/joaquin-abondano) · [GitHub](https://github.com/jabondanoaraoz)
+[Website](https://joaquinabondano.com/en/) · [LinkedIn](https://www.linkedin.com/in/joaquin-abondano) · [GitHub](https://github.com/jabondanoaraoz)
 
 > Built with [Claude Code](https://claude.ai/code)
