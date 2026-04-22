@@ -139,6 +139,7 @@ if "result" in st.session_state:
     col4.metric("Fwd P/E",    _fmt(km.get("forward_pe"),    ".1f", "", "x"))
     col5.metric("P/S",        _fmt(km.get("ps_ratio"),      ".1f", "", "x"))
     col6.metric("EV/EBITDA",  _fmt(km.get("ev_ebitda"),     ".1f", "", "x"))
+    st.caption("— indicates data not available from the API for this company.")
 
     st.divider()
 
@@ -216,7 +217,31 @@ if "result" in st.session_state:
 
     st.divider()
 
-    # ── Section 5: Excel download ─────────────────────────────────────────────
+    # ── Section 5: Peer comparables ───────────────────────────────────────────
+    peers_data = result.get("peers_data", {})
+    if peers_data:
+        st.subheader("Peer Comparables")
+        peer_rows = []
+        for pt, pd_ in peers_data.items():
+            def _p(key, decimals=2):
+                v = pd_.get(key)
+                return f"{v:.{decimals}f}" if v is not None else "—"
+            peer_rows.append({
+                "Ticker":    pt,
+                "Price":     f"${pd_.get('current_price'):.2f}" if pd_.get("current_price") else "—",
+                "Mkt Cap":   _fmt_cap(pd_.get("market_cap")),
+                "P/S":       _p("ps_ratio"),
+                "P/E":       _p("pe_ratio"),
+                "Fwd P/E":   _p("forward_pe"),
+                "EV/EBITDA": _p("ev_ebitda"),
+                "P/FCF":     _p("price_to_fcf"),
+                "Beta":      _p("beta", 3),
+            })
+        st.dataframe(peer_rows, use_container_width=True, hide_index=True)
+        st.caption("— indicates data not available from the API for this peer.")
+        st.divider()
+
+    # ── Section 6: Excel download ─────────────────────────────────────────────
     st.subheader("Export")
 
     if st.button("Generate Excel Report"):

@@ -515,7 +515,9 @@ def build(wb, result):
     # Footer
     ws.row_dimensions[r].height = 14
     wc(ws, r, C1,
-       "  Comparable company valuation. Does not constitute investment advice.",
+       "  Source: yfinance. Comparable company valuation. "
+       "Empty cells (—) indicate data not available from the API for this peer. "
+       "Does not constitute investment advice.",
        font=_f(8, False, MID_GRAY), bg=GRAY_LIGHT, align=AL_L)
     merge(ws, r, C1, r, CE)
 

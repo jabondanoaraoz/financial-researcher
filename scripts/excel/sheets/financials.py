@@ -335,7 +335,8 @@ def build(wb, result):
     ws.row_dimensions[r].height = 14
     wc(ws, r, C1,
        "  Source: yfinance / Alpha Vantage. Data ordered oldest → newest (left → right). "
-       "Margin formulas in col H reference most recent year (col G).",
+       "Margin formulas in col H reference most recent year (col G). "
+       "Empty cells (—) indicate data not reported or not available from the API for this company.",
        font=_f(8, False, MID_GRAY), bg=GRAY_LIGHT, align=AL_L)
     merge(ws, r, C1, r, CE)
 
