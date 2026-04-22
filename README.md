@@ -1,189 +1,119 @@
-# 📊 Financial Researcher
+# Financial Researcher
 
-**Autonomous financial analysis engine powered by AI agents** — A Claude Code skill that generates IB-grade investment research reports.
+Autonomous financial analysis engine powered by 10 AI investment agents. Given a stock ticker, it fetches real data, runs multi-perspective analysis, and generates an IB-grade Excel report.
 
-## 🎯 What It Does
-
-Financial Researcher combines real financial data with multi-agent AI analysis to produce comprehensive investment research reports in Excel format. Think of it as having 10 expert investors analyze a stock simultaneously and compile their findings into a professional-grade workbook.
-
-### Key Features
-
-- **📈 Multi-Source Data Extraction**: Pulls real-time data from yfinance, SEC EDGAR, Alpha Vantage, and FRED
-- **🤖 10 AI Investment Agents**:
-  - 5 legendary investors (Buffett, Graham, Damodaran, Wood, Burry)
-  - 3 specialized analysts (Fundamentals, Technicals, Valuation)
-  - 1 Risk Manager
-  - 1 Portfolio Manager
-- **📑 IB-Grade Excel Output**: Multi-sheet workbook with DCF model, peer comps, financial statements, and agent consensus
-- **🔄 LLM Agnostic**: Works with Groq, Claude API, Ollama, or DeepSeek
-- **💾 Smart Caching**: SQLite-based cache to minimize API calls
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     DATA LAYER                               │
-│  yfinance · SEC EDGAR · Alpha Vantage · FRED                │
-│                   ↓ (cached in SQLite)                       │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                   AGENT ENGINE                               │
-│  10 AI agents analyze in parallel using LLM                 │
-│  (Groq Llama 3.1 70B by default)                            │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                   EXCEL OUTPUT                               │
-│  9-sheet workbook: Overview · Financials · DCF · Comps ·    │
-│  Ratios · Agent Consensus · Investment Thesis               │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## 🛠️ Tech Stack
-
-* **Data Engineering & Extraction:** `yfinance`, `sec-edgar-api`, `alpha_vantage`, `fredapi`
-* **Agentic Framework & LLM Ops:** Custom Orchestrator, `groq`, Anthropic Claude API, Ollama (Local LLMs)
-* **Data Processing:** `pandas`, `numpy`, `sqlite3` (Caching layer)
-* **Reporting & Outputs:** `openpyxl`, `xlsxwriter`
-
-## 🚀 Quick Start
-
-### 1. Installation
+## What it does
 
 ```bash
-# Clone repository
-git clone https://github.com/[YOUR_USERNAME]/financial-researcher.git
-cd financial-researcher
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your API keys
+python run.py GOOGL
 ```
 
-### 2. Configuration
+1. Pulls data from yfinance, SEC EDGAR, Alpha Vantage, and FRED
+2. Runs 10 AI agents — each embodying a different investment philosophy
+3. Prints a terminal summary with consensus, scores, and risk snapshot
+4. Generates a 5-sheet Excel workbook in `output/`
 
-Required API keys:
-- **Groq API** (default LLM): Get free key at [console.groq.com](https://console.groq.com)
-- **Alpha Vantage** (optional): Free tier at [alphavantage.co](https://www.alphavantage.co)
+## The 10 agents
 
-Optional providers:
-- Anthropic Claude API
-- DeepSeek API
-- Ollama (local)
+| Agent | Philosophy | Score |
+|-------|-----------|-------|
+| Ben Graham | Margin of safety, net-nets, conservative valuation | /30 |
+| Warren Buffett | Moats, quality businesses, capital allocation | /20 |
+| Aswath Damodaran | Rigorous DCF, WACC, growth accounting | /20 |
+| Cathie Wood | Disruptive innovation, P/S, revenue growth | /20 |
+| Michael Burry | Deep value, contrarian, short interest signals | /20 |
+| Fundamentals Analyst | Profitability, growth, health ratios | 0–1 |
+| Technical Analyst | RSI, MACD, Bollinger, SMA, volume | /20 |
+| Valuation Analyst | DCF + peer multiples + Graham Number | /20 |
+| Risk Manager | Beta, Sharpe, drawdown, Kelly sizing | /20 |
+| Portfolio Manager | Synthesizes all 9 signals → final recommendation | — |
 
-### 3. Usage
+## Excel output
 
-```python
-# As Claude Code Skill
-# Simply invoke from Claude Code:
-"Analyze AAPL stock using financial-researcher"
+| Sheet | Contents |
+|-------|----------|
+| Financials | Income statement, cash flow, balance sheet (5-year) |
+| Multiples | Peer comparables with editable weights |
+| DCF Model | IB-style DCF with Excel formulas and sensitivity table |
+| Analyst Panel | All 10 agents — signal, score, pillar breakdown, reasoning |
+| Summary | Investment decision, consensus, PM thesis, risk snapshot |
 
-# Or use directly as Python module
-from scripts.orchestrator import FinancialResearcher
+## CLI reference
 
-researcher = FinancialResearcher()
-report = researcher.analyze(ticker="AAPL", output_path="./output/AAPL_analysis.xlsx")
+```bash
+# Basic analysis (generates terminal summary + Excel)
+python run.py AAPL
+
+# Custom peer universe
+python run.py AAPL --peers MSFT GOOGL AMZN META
+
+# Terminal only, no Excel
+python run.py AAPL --no-excel
+
+# Custom output path
+python run.py AAPL --output reports/AAPL_custom.xlsx
+
+# Suppress terminal output (Excel only)
+python run.py AAPL --quiet
+
+# Verbose logging
+python run.py AAPL --log-level INFO
 ```
 
-## 📂 Project Structure
+## Project structure
 
 ```
 financial-researcher/
-├── SKILL.md              # Claude Code skill definition
-├── README.md             # This file
-├── requirements.txt      # Python dependencies
-├── .env.example          # Environment template
-├── references/           # Knowledge base (valuation methods, metrics, etc.)
+├── run.py                   # CLI entry point
+├── SKILL.md                 # Claude Code skill definition
+├── INSTALL.md               # Setup guide
+├── requirements.txt
+├── .env.example             # API key template
 ├── scripts/
-│   ├── data/            # Data extraction adapters
-│   ├── agents/          # AI investment agents
-│   ├── excel/           # Excel workbook builder
-│   └── orchestrator.py  # Main orchestration logic
-└── templates/           # Configuration files (peer mappings, etc.)
+│   ├── orchestrator.py      # Main pipeline
+│   ├── display.py           # Terminal summary
+│   ├── agents/              # 10 investment agents + base class
+│   ├── data/                # yfinance, SEC EDGAR, Alpha Vantage, FRED adapters
+│   └── excel/               # 5-sheet workbook builder
+├── tests/
+│   ├── mock_result.py       # Shared mock (no API calls)
+│   ├── test_excel.py        # Excel generation test
+│   └── test_display.py      # Terminal display test
+├── output/                  # Generated reports (gitignored)
+├── cache/                   # SQLite data cache (gitignored)
+├── references/              # Agent philosophies, valuation methods, metrics glossary
+└── templates/               # Peer universe mappings
 ```
 
-## 🧠 Agent Philosophies
+## Setup
 
-Each AI agent embodies the investment philosophy of legendary investors:
+See [INSTALL.md](INSTALL.md) for full installation instructions.
 
-- **Warren Buffett**: Value investing, moats, quality businesses
-- **Ben Graham**: Margin of safety, intrinsic value, contrarian plays
-- **Aswath Damodaran**: Rigorous valuation, DCF modeling, market narratives
-- **Cathie Wood**: Disruptive innovation, exponential growth, long-term tech trends
-- **Michael Burry**: Deep value, asymmetric bets, credit analysis
-
-Plus specialized agents for:
-- Fundamental analysis (ratios, margins, growth)
-- Technical analysis (charts, momentum, support/resistance)
-- Valuation modeling (DCF, comps, multiples)
-- Risk assessment (VaR, beta, scenario analysis)
-- Portfolio construction (allocation, diversification)
-
-## 📊 Excel Output
-
-The generated workbook contains:
-
-1. **Overview**: Key metrics, price performance, sector info
-2. **Income Statement**: 5-year historical + projections
-3. **Balance Sheet**: Assets, liabilities, equity breakdown
-4. **Cash Flow**: Operating, investing, financing activities
-5. **Financial Ratios**: Profitability, liquidity, efficiency, leverage
-6. **DCF Model**: Discounted Cash Flow valuation featuring WACC calculation, terminal value assumptions, and margin of safety sensitivity analysis.
-7. **Peer Comparables**: Valuation multiples vs. industry peers
-8. **Agent Consensus**: 10 agents' ratings, price targets, and reasoning
-9. **Investment Thesis**: Synthesized recommendation with bull/bear cases
-
-## 🔧 Advanced Configuration
-
-### Switch LLM Provider
-
+**Quick version:**
 ```bash
-# Use Claude API instead of Groq
-LLM_PROVIDER=claude
-LLM_MODEL=claude-sonnet-4-5-20250929
-
-# Use local Ollama
-LLM_PROVIDER=ollama
-LLM_MODEL=llama3.1:70b
+git clone https://github.com/jabondanoaraoz/financial-researcher.git
+cd financial-researcher
+pip install -r requirements.txt
+cp .env.example .env        # add your GROQ_API_KEY
+python run.py AAPL
 ```
 
-### Customize Agent Weightings
+Requires a free [Groq API key](https://console.groq.com). Alpha Vantage and FRED keys are optional.
 
-Edit `templates/agent_weights.json` to adjust how much each agent influences the consensus.
+## Tech stack
 
-### Add Custom Peer Groups
+- **Data**: yfinance, sec-edgar, alpha_vantage, fredapi
+- **LLM**: Groq (llama-3.3-70b-versatile by default) — configurable via `.env`
+- **Processing**: pandas, numpy
+- **Excel**: openpyxl
+- **Cache**: SQLite
 
-Edit `templates/peers_mapping.json` to define industry-specific peer sets.
+## Disclaimer
 
-## 🤝 Contributing
-
-Contributions are welcome. Please open an issue first to discuss proposed changes or architectural shifts. 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
-
-## ⚠️ Disclaimer
-
-This tool is for **educational and research purposes only**. The outputs generated by this repository, including agent analyses, DCF models, and technical screening, do not constitute financial advice, investment recommendations, or an offer to buy/sell any securities. The autonomous agents simulate the investment thesis of historical figures based on LLM processing, which may contain hallucinations, parsing errors, or outdated assumptions.
-
-Always conduct your own due diligence (DD) and consult with a certified financial advisor before making capital allocation decisions. The author is not liable for any capital losses incurred resulting from the use of this software or its outputs.
+For educational and research purposes only. Not financial advice. Always conduct your own due diligence before making investment decisions.
 
 ---
 
-## 👤 Author
+**Author:** Joaquín Abondano Araoz · [LinkedIn](https://www.linkedin.com/in/joaquin-abondano) · [GitHub](https://github.com/jabondanoaraoz)
 
-**Joaquín Abondano Araoz** *Strategic & Financial Planning | Value Investing | Data Analytics | AI & ML Enthusiast*
-
-Contact Me: [LinkedIn](https://www.linkedin.com/in/joaquin-abondano) • [GitHub](https://github.com/jabondanoaraoz)
-
-> 🤖 **Note:** The architecture, debugging, and agent logic of this repository were accelerated utilizing [Claude Code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview). Data sourced from public APIs.
+> Built with [Claude Code](https://claude.ai/code)

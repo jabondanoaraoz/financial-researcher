@@ -1,24 +1,24 @@
-# Core dependencies
-python-dotenv==1.0.0
-requests==2.31.0
-pandas==2.2.0
-numpy==1.26.3
+# Core
+python-dotenv>=1.2.0
+requests>=2.32.0
+pandas>=2.3.0
+numpy>=2.4.0
 
-# Financial data sources
-yfinance==0.2.36
-sec-edgar-downloader==5.0.2
+# Financial data
+yfinance>=1.2.0
+sec-edgar-downloader>=5.0.2
 
-# LLM providers
-groq==0.4.2
-anthropic==0.18.0
+# LLM
+groq>=1.0.0
+anthropic>=0.18.0
 
-# Excel generation
-openpyxl==3.1.2
+# Excel
+openpyxl>=3.1.5
 
-# Database & caching
-sqlalchemy==2.0.25
+# Cache
+sqlalchemy>=2.0.25
 
 # Utilities
-tqdm==4.66.1
-python-dateutil==2.8.2
-pytz==2023.3
+tqdm>=4.66.1
+python-dateutil>=2.9.0
+pytz>=2025.0
