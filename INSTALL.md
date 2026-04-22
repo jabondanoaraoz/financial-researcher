@@ -78,6 +78,46 @@ The terminal will print a summary and save the Excel report to `output/AAPL_<dat
 
 ---
 
+## Optional: Install as a Claude Code skill
+
+If you use [Claude Code](https://claude.ai/code), you can install Financial Researcher as a skill so Claude can run analyses directly from a conversation.
+
+### What this enables
+
+Once installed, you can type things like:
+
+> *"Analyze AAPL"* or *"Research TSLA with peers RIVN LCID GM"*
+
+and Claude will automatically run the pipeline and generate the Excel report — no need to remember the CLI commands.
+
+### Install
+
+Copy `SKILL.md` into Claude's skill directory:
+
+```bash
+# macOS / Linux
+mkdir -p ~/.claude/skills/financial-researcher
+cp SKILL.md ~/.claude/skills/financial-researcher/SKILL.md
+```
+
+```powershell
+# Windows (PowerShell)
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.claude\skills\financial-researcher"
+Copy-Item SKILL.md "$env:USERPROFILE\.claude\skills\financial-researcher\SKILL.md"
+```
+
+### Verify
+
+Open a new Claude Code session and ask:
+
+> *"Analyze MSFT"*
+
+Claude should recognize the skill and run `python run.py MSFT` from the project directory.
+
+> **Note:** The skill file references an absolute path to this project directory. If you move the project folder after installing, update the path in `~/.claude/skills/financial-researcher/SKILL.md`.
+
+---
+
 ## Common issues
 
 **`ModuleNotFoundError: No module named 'groq'`**
