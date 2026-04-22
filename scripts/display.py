@@ -3,6 +3,8 @@ Terminal display layer for Financial Researcher.
 Prints a clean, readable summary of run_analysis() results.
 """
 
+import sys
+
 from datetime import date
 
 
@@ -201,3 +203,4 @@ def print_summary(result: dict) -> None:
     print()
     print(_bold("=" * width))
     print()
+    sys.stdout.flush()

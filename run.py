@@ -3,6 +3,7 @@ Financial Researcher — CLI entry point.
 
 Usage:
     python run.py AAPL
+    python run.py AAPL MSFT GOOGL
     python run.py AAPL --peers MSFT GOOGL AMZN
     python run.py AAPL --no-excel
     python run.py AAPL --output reports/AAPL_custom.xlsx
@@ -29,7 +30,7 @@ def _parse_args():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    p.add_argument("ticker", type=str, help="Stock ticker symbol (e.g. AAPL)")
+    p.add_argument("tickers", nargs="+", type=str, help="One or more ticker symbols (e.g. AAPL MSFT GOOGL)")
     p.add_argument(
         "--peers", nargs="+", metavar="TICKER",
         help="Custom peer universe (e.g. --peers MSFT GOOGL AMZN)",
@@ -62,25 +63,33 @@ def main():
         format="%(levelname)s  %(name)s  %(message)s",
     )
 
-    ticker = args.ticker.upper().strip()
-    peers  = {t.upper(): None for t in args.peers} if args.peers else None
+    tickers = [t.upper().strip() for t in args.tickers]
+    peers   = {t.upper(): None for t in args.peers} if args.peers else None
+    total   = len(tickers)
 
-    print(f"\nAnalyzing {ticker}..." + (" (peers: " + ", ".join(peers) + ")" if peers else ""))
-
-    result = run_analysis(ticker, peers=peers)
-
-    if not args.quiet:
-        print_summary(result)
-
-    if not args.no_excel:
-        if args.output:
-            output_path = args.output
+    for i, ticker in enumerate(tickers, 1):
+        if total > 1:
+            print(f"\n[{i}/{total}] Analyzing {ticker}...")
         else:
-            os.makedirs("output", exist_ok=True)
-            output_path = os.path.join("output", f"{ticker}_{date.today()}.xlsx")
+            print(f"\nAnalyzing {ticker}...")
 
-        generate_report(result, output_path)
-        print(f"Excel report saved → {output_path}\n")
+        result = run_analysis(ticker, peers=peers)
+
+        if not args.quiet:
+            print_summary(result)
+
+        if not args.no_excel:
+            if args.output and total == 1:
+                output_path = args.output
+            else:
+                os.makedirs("output", exist_ok=True)
+                output_path = os.path.join("output", f"{ticker}_{date.today()}.xlsx")
+
+            generate_report(result, output_path)
+            print(f"Excel report saved → {output_path}\n")
+
+    if total > 1:
+        print(f"Done. {total} reports generated in output/\n")
 
 
 if __name__ == "__main__":
