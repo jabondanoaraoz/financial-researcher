@@ -1,5 +1,5 @@
 """
-Excel report generation test — no API calls required.
+Excel report generation test - no API calls required.
 Run from project root: python tests/test_excel.py
 """
 

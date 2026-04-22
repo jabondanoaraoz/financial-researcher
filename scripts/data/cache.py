@@ -1,15 +1,5 @@
 """
-SQLite Cache System
-Persistent cache for financial data to minimize API calls and improve performance.
-
-Features:
-- Automatic TTL (time-to-live) expiration
-- Support for multiple data types (JSON, DataFrames, primitives)
-- Thread-safe operations
-- Cache statistics and monitoring
-- Source tracking (yfinance, FRED, Alpha Vantage, etc.)
-
-Author: Joaquin Abondano w/ Claude Code
+SQLite cache for financial data. TTL-based, thread-safe, supports DataFrames via pickle.
 """
 
 import sqlite3
@@ -23,8 +13,6 @@ import logging
 import threading
 import pandas as pd
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -467,28 +455,3 @@ def get_cache() -> CacheManager:
 
     return _cache_instance
 
-
-if __name__ == "__main__":
-    # Quick test
-    print("Testing cache system...")
-
-    cache = get_cache()
-
-    # Test primitive values
-    cache.set("test_string", "Hello, World!", source="test")
-    cache.set("test_number", 42, source="test")
-    cache.set("test_dict", {"key": "value", "number": 123}, source="test")
-
-    print(f"String: {cache.get('test_string')}")
-    print(f"Number: {cache.get('test_number')}")
-    print(f"Dict: {cache.get('test_dict')}")
-
-    # Test DataFrame
-    df = pd.DataFrame({"A": [1, 2, 3], "B": [4, 5, 6]})
-    cache.set("test_dataframe", df, source="test")
-    df_cached = cache.get("test_dataframe")
-    print(f"DataFrame:\n{df_cached}")
-
-    # Show stats
-    stats = cache.get_stats()
-    print(f"\nCache stats: {json.dumps(stats, indent=2)}")

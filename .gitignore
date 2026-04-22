@@ -46,7 +46,7 @@ env/
 *.sqlite3
 cache/
 
-# Output files — generated reports go here, folder is tracked but contents are not
+# Output files - generated reports (folder tracked, contents ignored)
 output/*
 !output/.gitkeep
 *.log
@@ -62,4 +62,3 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
-test_*.py  # Test scripts

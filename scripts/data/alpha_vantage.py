@@ -1,14 +1,5 @@
 """
-Alpha Vantage Data Adapter
-Enhanced financial metrics and technical indicators from Alpha Vantage API.
-
-Alpha Vantage provides pre-calculated financial ratios, analyst ratings,
-and technical indicators that complement basic yfinance data.
-
-Free Tier: 25 requests/day
-API Docs: https://www.alphavantage.co/documentation/
-
-Author: Joaquin Abondano w/ Claude Code
+Alpha Vantage Data Adapter - supplementary ratios and analyst data (25 req/day free tier).
 """
 
 import requests
@@ -20,8 +11,6 @@ from datetime import datetime
 
 from data.cache import get_cache
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BASE_URL = "https://www.alphavantage.co/query"
@@ -282,18 +271,3 @@ def get_technical_indicators(ticker: str, days: int = 60) -> Optional[Dict[str, 
         return None
 
 
-if __name__ == "__main__":
-    # Quick test
-    print("Testing Alpha Vantage adapter...")
-
-    ticker = "AAPL"
-
-    overview = get_company_overview(ticker)
-    if overview:
-        print(f"\nCompany: {overview['name']}")
-        print(f"P/E Ratio: {overview['pe_ratio']}")
-        print(f"Analyst Target: ${overview['analyst_target_price']}")
-
-    technicals = get_technical_indicators(ticker)
-    if technicals and 'rsi' in technicals:
-        print(f"\nLatest RSI: {technicals['rsi'].iloc[0]['RSI']:.2f}")

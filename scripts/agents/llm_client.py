@@ -1,14 +1,6 @@
 """
-LLM Client
-Provider-agnostic LLM wrapper used by all AI-driven agents.
-
-Supports: Groq · Anthropic · OpenAI · DeepSeek · Ollama (local)
-
-Provider selection and credentials are read from environment variables:
-    LLM_PROVIDER  → groq | anthropic | openai | deepseek | ollama
-    LLM_MODEL     → optional override (falls back to per-provider defaults)
-
-Author: Joaquin Abondano w/ Claude Code
+LLM Client - provider-agnostic wrapper for Groq, Anthropic, OpenAI, DeepSeek, and Ollama.
+Provider selected via LLM_PROVIDER env var (default: groq). Model via LLM_MODEL.
 """
 
 import os
@@ -29,26 +21,7 @@ DEFAULT_MODELS = {
 
 
 class LLMClient:
-    """
-    Thin, provider-agnostic wrapper around chat-completion APIs.
-
-    Usage
-    >>> client = LLMClient()                          # reads from env
-    >>> text   = client.generate(system, user)        # plain text
-    >>> obj    = client.generate(system, user,        # structured JSON
-    ...              response_format={"type": "json_object"})
-
-    Parameters
-    provider : str
-        LLM backend.  Defaults to LLM_PROVIDER env var, then "groq".
-    model : str | None
-        Specific model override.  Defaults to LLM_MODEL env var, then
-        the provider default from DEFAULT_MODELS.
-    temperature : float
-        Sampling temperature (0 = deterministic, 1 = creative).
-    max_tokens : int
-        Maximum tokens in the generated response.
-    """
+    """Thin wrapper around chat-completion APIs. Use generate() for text, generate_json() for structured output."""
 
     def __init__(
         self,
@@ -138,7 +111,7 @@ class LLMClient:
             The actual question or analysis request.
         response_format : dict | None
             Pass {"type": "json_object"} to request structured JSON output.
-            Not all providers support this — Groq and OpenAI do.
+            Not all providers support this - Groq and OpenAI do.
 
         Returns
         str

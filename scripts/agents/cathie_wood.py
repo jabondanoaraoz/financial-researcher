@@ -1,6 +1,6 @@
 """
 Cathie Wood Agent
-"We invest in disruptive innovation — the biggest growth opportunities in history."
+"We invest in disruptive innovation - the biggest growth opportunities in history."
 
 Cathie Wood's philosophy: identify companies riding exponential S-curves in
 disruptive technology. She accepts near-term losses and high valuations if
@@ -9,20 +9,19 @@ accelerating. Asset-light, high-gross-margin platforms with heavy R&D
 reinvestment are her hallmark.
 
 Scoring (/20):
-    Revenue Growth & Acceleration   7 pts  (35%) — CAGR + acceleration signal
-    Scalability                     4 pts  (20%) — Gross margin ≥ 50% level + R&D intensity
-    Disruption Score                4 pts  (20%) — Operating leverage + Gross margin expansion
-    Valuation Tolerance             5 pts  (25%) — P/S adjusted for growth rate
+    Revenue Growth & Acceleration   7 pts  (35%) - CAGR + acceleration signal
+    Scalability                     4 pts  (20%) - Gross margin ≥ 50% level + R&D intensity
+    Disruption Score                4 pts  (20%) - Operating leverage + Gross margin expansion
+    Valuation Tolerance             5 pts  (25%) - P/S adjusted for growth rate
 
 Key differentiators vs other agents:
     • Rewards revenue *acceleration*, not just level (momentum on the S-curve)
-    • Gross margin > 50% as scalability threshold — measures LEVEL in pillar 2
+    • Gross margin > 50% as scalability threshold - measures LEVEL in pillar 2
     • Gross margin TREND measured separately in disruption pillar (level ≠ trajectory)
     • R&D/Revenue as proxy for TAM reinvestment (not a cost, a strategic asset)
     • P/S primary valuation metric: accepts high multiples when CAGR justifies it
     • Operating leverage scored via operating margin trajectory over 3-4 years
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 import logging
@@ -40,13 +39,13 @@ logger = logging.getLogger(__name__)
 # SYSTEM PROMPT
 
 SYSTEM_PROMPT = """You are Cathie Wood, founder and CIO of ARK Invest, performing a stock analysis.
-Your philosophy: invest early in disruptive innovation — genomics, AI, robotics, fintech, energy storage.
+Your philosophy: invest early in disruptive innovation - genomics, AI, robotics, fintech, energy storage.
 You believe the biggest risk is *not* owning the companies reshaping civilization. You tolerate near-term
 losses and high P/S multiples if the revenue trajectory is accelerating and the total addressable market
 is enormous. You think in 5-year horizons and position around exponential S-curves, not quarterly earnings.
 
 You will receive quantitative scores (0–20) across four pillars plus the underlying metrics.
-Produce your investment opinion as JSON only — no prose outside the JSON:
+Produce your investment opinion as JSON only - no prose outside the JSON:
 
 {
   "signal": "bullish" | "neutral" | "bearish",
@@ -98,9 +97,9 @@ def _score_revenue_growth(financials: dict, av: dict) -> tuple[dict, Optional[fl
     Revenue Growth & Acceleration Score /7
 
     Sub-metrics:
-        Revenue CAGR (0-4 pts)       — 3-4 year compound growth rate
-        YoY acceleration (0-2 pts)   — is the most recent year faster than prior period?
-        Revenue consistency (0-1 pt) — all periods show positive growth (no declines)
+        Revenue CAGR (0-4 pts)       - 3-4 year compound growth rate
+        YoY acceleration (0-2 pts)   - is the most recent year faster than prior period?
+        Revenue consistency (0-1 pt) - all periods show positive growth (no declines)
 
     Returns (result_dict, cagr_float) so cagr can be reused in the valuation pillar.
     """
@@ -205,8 +204,8 @@ def _score_scalability(financials: dict) -> dict:
     Scalability Score /4
 
     Sub-metrics:
-        Gross margin LEVEL (0-2 pts)  — ≥ 50% = asset-light, scalable platform model
-        R&D intensity      (0-2 pts)  — R&D/Revenue = reinvestment in future TAM
+        Gross margin LEVEL (0-2 pts)  - ≥ 50% = asset-light, scalable platform model
+        R&D intensity      (0-2 pts)  - R&D/Revenue = reinvestment in future TAM
 
     Note: gross margin *trajectory* is captured in the Disruption pillar.
     """
@@ -275,10 +274,10 @@ def _score_disruption(financials: dict) -> dict:
     Disruption Score /4
 
     Sub-metrics:
-        Operating leverage   (0-2 pts) — operating margin TREND over 3-4 years
+        Operating leverage   (0-2 pts) - operating margin TREND over 3-4 years
                                          Expanding margins signal that growth is being
                                          leveraged rather than consumed by costs.
-        Gross margin expansion (0-2 pts) — GM TREND direction (level is in scalability)
+        Gross margin expansion (0-2 pts) - GM TREND direction (level is in scalability)
                                            A platform improving its take-rate signals
                                            increasing pricing power in its disrupted market.
     """
@@ -300,7 +299,7 @@ def _score_disruption(financials: dict) -> dict:
             op_margins.append((oi / rev) * 100)
 
     if len(op_margins) >= 2:
-        # Most recent (index 0) vs oldest available — positive delta = expanding
+        # Most recent (index 0) vs oldest available - positive delta = expanding
         margin_delta = op_margins[0] - op_margins[-1]
         if margin_delta >= 10:   oplev_pts = 2.0
         elif margin_delta >= 4:  oplev_pts = 1.5
@@ -351,13 +350,13 @@ def _score_valuation_tolerance(
     Valuation Tolerance Score /5
 
     Cathie Wood's primary lens: Price/Sales adjusted for revenue growth rate.
-    High P/S is acceptable — even desirable — when CAGR justifies the premium.
+    High P/S is acceptable - even desirable - when CAGR justifies the premium.
     Low-growth stocks with elevated P/S are disqualified.
 
     Sub-metrics:
-        P/S ratio (growth-adjusted)  (0-3 pts) — core metric
-        EV/Revenue                   (0-1 pt)  — enterprise-level corroboration
-        Growth justification bonus   (0-1 pt)  — strong CAGR + reasonable P/S = bonus
+        P/S ratio (growth-adjusted)  (0-3 pts) - core metric
+        EV/Revenue                   (0-1 pt)  - enterprise-level corroboration
+        Growth justification bonus   (0-1 pt)  - strong CAGR + reasonable P/S = bonus
     """
     score = 0.0
     detail = {}
@@ -443,7 +442,7 @@ def _score_valuation_tolerance(
 # Agent class
 
 class CathieWoodAgent(BaseAgent):
-    """Cathie Wood — disruptive innovation and exponential growth."""
+    """Cathie Wood - disruptive innovation and exponential growth."""
 
     def __init__(self, llm: Optional[LLMClient] = None):
         super().__init__(agent_id="cathie_wood", agent_name="Cathie Wood")

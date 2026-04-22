@@ -1,9 +1,8 @@
 """
 Summary Sheet
 Investment decision, consensus, valuation, risk summary, and PM reasoning.
-Placed last — synthesizes all prior sheets.
+Placed last - synthesizes all prior sheets.
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 from ..styles import (

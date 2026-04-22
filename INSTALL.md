@@ -56,7 +56,7 @@ FRED_API_KEY=your_key_here          # Optional
 | `ALPHA_VANTAGE_API_KEY` | No | [alphavantage.co](https://www.alphavantage.co/support/#api-key) | Free tier available |
 | `FRED_API_KEY` | No | [fred.stlouisfed.org/docs/api/api_key.html](https://fred.stlouisfed.org/docs/api/api_key.html) | Free |
 
-> If Alpha Vantage or FRED keys are missing, those data sources are skipped gracefully — the analysis still runs.
+> If Alpha Vantage or FRED keys are missing, those data sources are skipped gracefully - the analysis still runs.
 
 ### 5. Verify installation
 
@@ -88,7 +88,7 @@ Once installed, you can type things like:
 
 > *"Analyze AAPL"* or *"Research TSLA with peers RIVN LCID GM"*
 
-and Claude will automatically run the pipeline and generate the Excel report — no need to remember the CLI commands.
+and Claude will automatically run the pipeline and generate the Excel report - no need to remember the CLI commands.
 
 ### Install
 
@@ -127,7 +127,7 @@ You're not in the virtual environment. Activate it with `source venv/bin/activat
 Your `GROQ_API_KEY` is missing or incorrect in `.env`.
 
 **Analysis hangs for a long time**
-Groq's free tier has rate limits. The tool retries automatically — this is normal. It typically resolves within 1–2 minutes.
+Groq's free tier has rate limits. The tool retries automatically - this is normal. It typically resolves within 1–2 minutes.
 
 **`output/` directory missing**
 It's created automatically on first run. If it doesn't appear, create it manually: `mkdir output`.

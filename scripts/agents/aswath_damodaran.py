@@ -1,10 +1,10 @@
 """
 Aswath Damodaran Agent
-"Every asset has an intrinsic value — the story must match the numbers."
+"Every asset has an intrinsic value - the story must match the numbers."
 
 Damodaran's framework: disciplined DCF valuation, narrative consistency,
 and rigorous cost of capital. He believes that valuation is a bridge
-between stories and numbers — both must be coherent and grounded in data.
+between stories and numbers - both must be coherent and grounded in data.
 
 Scoring (/20):
     Revenue growth story  (CAGR + sustainability)   5 pts  (25%)
@@ -16,10 +16,9 @@ Key differentiators vs other agents:
     • 2-stage DCF as primary tool: Stage 1 (5 yr at hist. CAGR) + terminal value
     • WACC properly computed: Rf + β×ERP(5.5%), weighted with cost of debt
     • Reinvestment rate reveals whether growth creates or destroys value
-    • Revenue scored on RATE + CONSISTENCY (CoV) — sustainable growth premium
+    • Revenue scored on RATE + CONSISTENCY (CoV) - sustainable growth premium
     • Margin trajectory scored as level + trend (convergence to target matters)
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 import logging
@@ -41,7 +40,7 @@ about a company must be consistent with the numbers you use in your DCF model.
 
 You distrust narratives untethered from data, and you distrust data without a coherent story.
 You are disciplined, intellectually honest, and willing to say a great company is a bad investment
-if the price is too high — or that a troubled company is a bargain if the price is low enough.
+if the price is too high - or that a troubled company is a bargain if the price is low enough.
 
 You will receive quantitative scores (/20) across four criteria. Produce your opinion as JSON only:
 
@@ -137,7 +136,7 @@ def _compute_wacc(inc, bs, metrics: dict, rfr: float) -> Tuple[float, dict]:
     shares = metrics.get("shares_outstanding")
     mkt_cap = (price * shares) if (price and shares) else None
 
-    # Total debt — try dedicated field, fall back to components
+    # Total debt - try dedicated field, fall back to components
     total_debt = (_get_latest(bs, "Total Debt") or
                   ((_get_latest(bs, "Long Term Debt", "Long Term Debt And Capital Lease Obligation") or 0) +
                    (_get_latest(bs, "Current Debt", "Short Term Debt") or 0)))
@@ -239,7 +238,7 @@ def _score_revenue_growth(inc) -> dict:
     Revenue Growth Story /5
     CAGR (0-3 pts) + Coefficient of Variation / stability (0-2 pts).
 
-    Damodaran prizes sustainable growth — a lumpy 20% is worth less than
+    Damodaran prizes sustainable growth - a lumpy 20% is worth less than
     a consistent 12%.  CoV captures that sustainability.
     """
     detail = {}
@@ -252,7 +251,7 @@ def _score_revenue_growth(inc) -> dict:
         detail["revenue"] = {"value": "No revenue data", "pts": 0, "max": 5}
         return {"score": 0.0, "max": 5, "detail": detail}
 
-    # CAGR — prefer 5-yr, fall back to 3-yr, then 1-yr
+    # CAGR - prefer 5-yr, fall back to 3-yr, then 1-yr
     cagr   = (_revenue_cagr(rev_series, 5) or
               _revenue_cagr(rev_series, 3) or
               _revenue_cagr(rev_series, 1))
@@ -272,7 +271,7 @@ def _score_revenue_growth(inc) -> dict:
             "pts": cagr_pts, "max": 3,
         }
 
-    # Coefficient of Variation — low = stable growth premium
+    # Coefficient of Variation - low = stable growth premium
     cov_pts = 0.0
     if len(rev_series) >= 3:
         arr     = np.array(rev_series[:min(len(rev_series), 5)])
@@ -297,7 +296,7 @@ def _score_margin_trajectory(inc) -> dict:
     Margin Trajectory /5
     Operating margin level (0-3 pts) + trend / direction (0-2 pts).
 
-    Damodaran models margin convergence to a "target" — the trend reveals
+    Damodaran models margin convergence to a "target" - the trend reveals
     whether the company is moving toward or away from that target.
     """
     detail = {}
@@ -318,7 +317,7 @@ def _score_margin_trajectory(inc) -> dict:
                for i in range(n) if rev_series[i] > 0]
 
     if not margins:
-        detail["margin"] = {"value": "Zero revenue — cannot compute margin", "pts": 0, "max": 5}
+        detail["margin"] = {"value": "Zero revenue - cannot compute margin", "pts": 0, "max": 5}
         return {"score": 0.0, "max": 5, "detail": detail}
 
     cur_margin = margins[0]   # most recent
@@ -473,7 +472,7 @@ def _score_dcf(inc, bs, cf, metrics: dict, rfr: float,
 
     if not fcff_base or fcff_base <= 0:
         detail["dcf"] = {
-            "value": f"Negative / unavailable FCFF — DCF not feasible",
+            "value": f"Negative / unavailable FCFF - DCF not feasible",
             "pts": 0, "max": 5,
         }
         return {"score": 0.0, "max": 5, "detail": detail}
@@ -559,7 +558,7 @@ def _score_dcf(inc, bs, cf, metrics: dict, rfr: float,
 # Agent class
 
 class AswathDamodaranAgent(BaseAgent):
-    """Aswath Damodaran — disciplined DCF; story must match numbers."""
+    """Aswath Damodaran - disciplined DCF; story must match numbers."""
 
     def __init__(self, llm: Optional[LLMClient] = None):
         super().__init__(agent_id="aswath_damodaran", agent_name="Aswath Damodaran")
@@ -574,7 +573,7 @@ class AswathDamodaranAgent(BaseAgent):
         bs  = financials.get("balance_sheet")
         cf  = financials.get("cash_flow")
 
-        # WACC — computed once, shared across pillars 3 & 4
+        # WACC - computed once, shared across pillars 3 & 4
         wacc, wacc_debug = _compute_wacc(inc, bs, metrics, rfr)
 
         # Score all four criteria
@@ -597,7 +596,7 @@ class AswathDamodaranAgent(BaseAgent):
         user_prompt = f"""
 Ticker: {ticker} ({company_name})
 
-DAMODARAN SCORES — total {round(total, 2)}/{total_max}:
+DAMODARAN SCORES - total {round(total, 2)}/{total_max}:
 
 1. REVENUE GROWTH STORY: {rev_score['score']}/{rev_score['max']}
 {_fmt_detail(rev_score['detail'])}

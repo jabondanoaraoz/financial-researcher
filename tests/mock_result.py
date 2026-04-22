@@ -1,5 +1,5 @@
 """
-Shared mock result for tests — no API calls required.
+Shared mock result for tests - no API calls required.
 """
 
 import sys, os
@@ -129,7 +129,7 @@ def make_mock_result():
         "michael_burry": _sig(
             "michael_burry", "Michael Burry", "bearish", 0.69,
             {"total": 7.0, "total_max": 20.0},
-            "Short interest in AAPL is low — no contrarian signal. Insider selling has accelerated. "
+            "Short interest in AAPL is low - no contrarian signal. Insider selling has accelerated. "
             "The stock is priced for perfection at a point where macro headwinds are building.",
             ["Elevated short-term debt", "Insider net selling", "Consumer spending slowdown"],
             "sell",
@@ -142,7 +142,7 @@ def make_mock_result():
              "bollinger":       {"score": 2.0,  "max": 4},
              "moving_averages": {"score": 5.0,  "max": 5},
              "volume":          {"score": 1.5,  "max": 3}},
-            "Price above both SMA50 and SMA200 — trend is intact. RSI at 58. MACD positive and widening.",
+            "Price above both SMA50 and SMA200 - trend is intact. RSI at 58. MACD positive and widening.",
             ["RSI approaching overbought on weekly", "Key support at $185"],
             "buy",
         ),

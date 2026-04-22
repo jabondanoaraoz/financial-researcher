@@ -1,11 +1,5 @@
 """
-Base Agent
-Abstract base class and shared data structures for all investment agents.
-
-Every agent in the Financial Researcher implements this interface,
-ensuring a consistent output format that the orchestrator can aggregate.
-
-Author: Joaquin Abondano w/ Claude Code
+Base agent class and AgentSignal dataclass shared by all investment agents.
 """
 
 from abc import ABC, abstractmethod
@@ -30,36 +24,7 @@ ACTION_COVER = "cover"
 
 @dataclass
 class AgentSignal:
-    """
-    Standardized output produced by every agent after analyzing a ticker.
-
-    Fields
-    agent_id : str
-        Machine-readable identifier (e.g. "fundamentals", "warren_buffett")
-    agent_name : str
-        Human-readable name (e.g. "Fundamentals Analyst", "Warren Buffett")
-    signal : str
-        Overall directional view — "bullish" | "neutral" | "bearish"
-    confidence : float
-        How strongly the agent holds its view — 0.0 (no view) to 1.0 (conviction)
-    scores : dict
-        Agent-specific sub-scores.  Keys and semantics vary by agent:
-          - Fundamentals: {"valuation": float, "profitability": float, ...}
-          - Buffett:       {"moat_score": float, "management_quality": float, ...}
-          Each score is in [0.0, 1.0], where 1.0 = best possible.
-    reasoning : str
-        Human-readable explanation of the signal (1-3 paragraphs).
-        Quant agents build this from rule logic;
-        LLM agents generate it via Groq/Claude.
-    key_risks : list[str]
-        Top 3-5 risks the agent identified.
-    target_action : str
-        Concrete recommended action — "buy" | "hold" | "sell" | "short" | "cover"
-    price_target : float | None
-        Optional price target in USD.  Not all agents provide one.
-    ticker : str
-        Ticker symbol this signal is for.
-    """
+    """Standardized output for all investment agents."""
     agent_id:      str
     agent_name:    str
     signal:        str
@@ -114,19 +79,7 @@ class AgentSignal:
 
 
 class BaseAgent(ABC):
-    """
-    Abstract base class for all investment analysis agents.
-
-    Subclasses must implement `analyze()`.  The orchestrator calls
-    `safe_analyze()` which wraps the implementation with error handling,
-    so an individual agent crash never kills the entire pipeline.
-
-    Parameters
-    agent_id : str
-        Machine-readable identifier.
-    agent_name : str
-        Human-readable display name.
-    """
+    """Abstract base class for all investment agents. Subclasses implement analyze()."""
 
     def __init__(self, agent_id: str, agent_name: str):
         self.agent_id   = agent_id
@@ -135,34 +88,10 @@ class BaseAgent(ABC):
 
     @abstractmethod
     def analyze(self, data: dict, ticker: str) -> AgentSignal:
-        """
-        Core analysis logic.  Subclasses implement this.
-
-        Parameters
-        data : dict
-            Consolidated data bundle from the data layer.  Expected keys:
-                company_info  → dict  (from yfinance_adapter)
-                key_metrics   → dict  (from yfinance_adapter)
-                financials    → dict  (from yfinance_adapter)
-                av_overview   → dict | None  (from alpha_vantage)
-                xbrl_facts    → dict | None  (from sec_edgar)
-                risk_free_rate → float  (from fred)
-                macro          → dict   (from fred)
-        ticker : str
-            Ticker symbol being analyzed.
-
-        Returns
-        AgentSignal
-        """
         raise NotImplementedError
 
     def safe_analyze(self, data: dict, ticker: str) -> Optional[AgentSignal]:
-        """
-        Fault-tolerant wrapper around `analyze()`.
-
-        Returns None instead of raising if the agent encounters an error,
-        so one broken agent never stops the other nine.
-        """
+        """Fault-tolerant wrapper - returns None on error so one agent failure never kills the pipeline."""
         try:
             signal = self.analyze(data, ticker)
             signal.ticker = ticker

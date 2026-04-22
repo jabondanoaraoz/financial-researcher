@@ -1,9 +1,8 @@
 """
-Multiples Sheet  (v3 — NEW)
+Multiples Sheet  (v3 - NEW)
 Peer-based valuation tool. User sets peer weights and method weights.
 All derived cells use Excel formulas. Yellow cells are editable.
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 import math
@@ -107,7 +106,7 @@ def build(wb, result):
 
     # Title
     ws.row_dimensions[r].height = 28
-    wc(ws, r, C1, f"  PEER MULTIPLES VALUATION  —  {ticker}",
+    wc(ws, r, C1, f"  PEER MULTIPLES VALUATION  -  {ticker}",
        font=_f(14, True, WHITE), bg=NAVY_DARK, align=AL_L)
     merge(ws, r, C1, r, CE)
     r += 1
@@ -134,7 +133,7 @@ def build(wb, result):
         # Empresa name
         wc(ws, r, C1, pt, font=_f(9, True), bg=BLUE_TINT, align=AL_C, border=BORDER_ALL)
 
-        # Peso — INPUT_YELLOW, pre-filled with equal weight
+        # Peso - INPUT_YELLOW, pre-filled with equal weight
         cell = ws.cell(row=r, column=C1 + 1, value=equal_weight)
         cell.font = _f(9, True); cell.fill = fill(INPUT_YELLOW)
         cell.alignment = AL_C; cell.border = BORDER_ALL
@@ -232,7 +231,7 @@ def build(wb, result):
         bg  = GRAY_LIGHT if alt else WHITE
         ws.row_dimensions[r].height = 16
         wc(ws, r, C1, lbl, font=_f(9, True), bg=BLUE_TINT, align=AL_LI, border=BORDER_ALL)
-        # Value cell — store raw numeric
+        # Value cell - store raw numeric
         display_val = val / 1e9 if (val is not None and key not in ("shares",)) else val
         if key == "shares":
             display_val = val / 1e9 if val else None
@@ -247,7 +246,7 @@ def build(wb, result):
         rows[f"fin_{key}"] = r
         r += 1
 
-    # Net Debt — formula
+    # Net Debt - formula
     ws.row_dimensions[r].height = 16
     wc(ws, r, C1, "Net Debt", font=_f(9, True), bg=BLUE_TINT, align=AL_LI, border=BORDER_ALL)
     nd_formula = f"={_a(rows['fin_debt'], C1+1)}-{_a(rows['fin_cash'], C1+1)}"
@@ -382,7 +381,7 @@ def build(wb, result):
         cell.font = _f(9); cell.fill = fill(bg)
         cell.alignment = AL_C; cell.border = BORDER_ALL; cell.number_format = "0.0%"
 
-        # H: Upside (same formula — upside = implied/market - 1)
+        # H: Upside (same formula - upside = implied/market - 1)
         up_formula = f"={implied_price_cell_addr}/{price_ref}-1"
         cell = ws.cell(row=r, column=C1 + 6, value=up_formula)
         cell.font = _f(9); cell.fill = fill(bg)
@@ -415,7 +414,7 @@ def build(wb, result):
         # B: method name
         wc(ws, r, C1, m["name"], font=_f(9, True), bg=BLUE_TINT, align=AL_C, border=BORDER_ALL)
 
-        # C: method weight — INPUT_YELLOW
+        # C: method weight - INPUT_YELLOW
         cell = ws.cell(row=r, column=C1 + 1, value=equal_mw)
         cell.font = _f(9, True); cell.fill = fill(INPUT_YELLOW)
         cell.alignment = AL_C; cell.border = BORDER_ALL; cell.number_format = "0.0"
@@ -459,7 +458,7 @@ def build(wb, result):
     merge(ws, r, C1 + 2, r, CE)
     r += 1
 
-    # PRECIO OBJETIVO — big row
+    # PRECIO OBJETIVO - big row
     ws.row_dimensions[r].height = 26
     wc(ws, r, C1, "  PRICE TARGET",
        font=_f(13, True, WHITE), bg=NAVY_DARK, align=AL_L, border=BORDER_ALL)
@@ -506,7 +505,7 @@ def build(wb, result):
     # Note
     ws.row_dimensions[r].height = 20
     wc(ws, r, C1,
-       "  Yellow cells are editable — all other values are formula-driven. "
+       "  Yellow cells are editable - all other values are formula-driven. "
        "Adjust peer weights and method weights to see the impact on the price target.",
        font=_f(8, False, DARK_GRAY), bg=GRAY_LIGHT, align=AL_W)
     merge(ws, r, C1, r, CE)

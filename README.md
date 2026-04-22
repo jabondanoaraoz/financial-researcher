@@ -1,6 +1,6 @@
 # 📊 Financial Researcher
 
-**Autonomous financial analysis engine powered by 10 AI investment agents** — A Claude Code skill that generates IB-grade investment research reports on any publicly traded company.
+**Autonomous financial analysis engine powered by 10 AI investment agents.** Generates IB-grade investment research reports on any publicly traded company.
 
 ## 🎯 What It Does
 
@@ -65,7 +65,7 @@ Each agent embodies a distinct investment philosophy and scores the stock on its
 | **Technical Analyst** | RSI, MACD, Bollinger Bands, SMA, volume | /20 |
 | **Valuation Analyst** | DCF + peer multiples + Graham Number | /20 |
 | **Risk Manager** | Beta, Sharpe, max drawdown, Kelly sizing | /20 |
-| **Portfolio Manager** | Synthesizes all 9 signals → final recommendation | — |
+| **Portfolio Manager** | Synthesizes all 9 signals → final recommendation | - |
 
 ## 📊 Excel Output
 
@@ -97,7 +97,7 @@ Requires a free [Groq API key](https://console.groq.com). Alpha Vantage and FRED
 # Single ticker
 python run.py AAPL
 
-# Batch mode — analyzes each ticker sequentially, one Excel per ticker
+# Batch mode: analyzes each ticker sequentially, one Excel per ticker
 python run.py AAPL MSFT META GOOGL
 
 # Custom peer universe
@@ -179,13 +179,13 @@ financial-researcher/
 
 ## ⚠️ Disclaimer
 
-This tool is for **educational and research purposes only**. The outputs — agent analyses, DCF models, price targets — do not constitute financial advice or investment recommendations. Agent reasoning is LLM-generated and may contain errors or outdated assumptions. Always conduct your own due diligence and consult a licensed financial advisor before making investment decisions.
+This tool is for **educational and research purposes only**. The outputs (agent analyses, DCF models, price targets) do not constitute financial advice or investment recommendations. Agent reasoning is LLM-generated and may contain errors or outdated assumptions. Always conduct your own due diligence and consult a licensed financial advisor before making investment decisions.
 
 ---
 
 ## 👤 Author
 
-**Joaquín Abondano Araoz** — Financial Modeling & Valuation · Value Investing · Data Analytics · AI & ML
+**Joaquín Abondano Araoz** - Financial Modeling & Valuation · Value Investing · Data Analytics · AI & ML
 
 [Website](https://www.joaquinabondano.com) · [LinkedIn](https://www.linkedin.com/in/joaquin-abondano) · [GitHub](https://github.com/jabondanoaraoz)
 

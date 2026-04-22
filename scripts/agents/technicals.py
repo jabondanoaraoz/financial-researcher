@@ -1,22 +1,21 @@
 """
 Technical Analysis Agent
-100% quantitative — NO LLM.
+100% quantitative - NO LLM.
 
 Analyses price action and volume using five indicator groups.
 Each group scores 0–4 pts (neutral = 2, bullish = 4, bearish = 0).
 Total /20 → maps to bullish / neutral / bearish signal.
 
 Scoring (/20):
-    RSI              4 pts  — momentum oscillator (oversold/overbought)
-    MACD             4 pts  — trend + crossover signal
-    Bollinger Bands  4 pts  — price relative to volatility envelope
-    Moving Averages  5 pts  — SMA50/200 cross + price position
-    Volume           3 pts  — volume confirmation of price trend
+    RSI              4 pts  - momentum oscillator (oversold/overbought)
+    MACD             4 pts  - trend + crossover signal
+    Bollinger Bands  4 pts  - price relative to volatility envelope
+    Moving Averages  5 pts  - SMA50/200 cross + price position
+    Volume           3 pts  - volume confirmation of price trend
 
 All calculations use yfinance Close prices fetched by the data layer.
 Falls back gracefully when insufficient history is available.
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 import logging
@@ -46,7 +45,7 @@ def _rsi(close: pd.Series, period: int = 14) -> Optional[float]:
 
 
 def _macd(close: pd.Series, fast=12, slow=26, signal=9):
-    """Returns (macd_line, signal_line, histogram) — last values."""
+    """Returns (macd_line, signal_line, histogram) - last values."""
     ema_f  = close.ewm(span=fast,   adjust=False).mean()
     ema_s  = close.ewm(span=slow,   adjust=False).mean()
     line   = ema_f - ema_s
@@ -56,7 +55,7 @@ def _macd(close: pd.Series, fast=12, slow=26, signal=9):
 
 
 def _bollinger(close: pd.Series, period=20, n_std=2):
-    """Returns (upper, middle, lower) — last values."""
+    """Returns (upper, middle, lower) - last values."""
     mid   = close.rolling(period).mean()
     std   = close.rolling(period).std()
     upper = mid + n_std * std
@@ -71,13 +70,13 @@ def _score_rsi(close: pd.Series) -> dict:
     if rsi is None:
         return {"score": 2.0, "max": 4, "detail": {}}
 
-    if rsi < 20:      pts = 4.0; label = f"{round(rsi,1)} — extreme oversold"
-    elif rsi < 30:    pts = 3.5; label = f"{round(rsi,1)} — oversold"
-    elif rsi < 45:    pts = 3.0; label = f"{round(rsi,1)} — mildly bullish"
-    elif rsi <= 55:   pts = 2.0; label = f"{round(rsi,1)} — neutral"
-    elif rsi <= 70:   pts = 1.0; label = f"{round(rsi,1)} — mildly overbought"
-    elif rsi <= 80:   pts = 0.5; label = f"{round(rsi,1)} — overbought"
-    else:             pts = 0.0; label = f"{round(rsi,1)} — extreme overbought"
+    if rsi < 20:      pts = 4.0; label = f"{round(rsi,1)} - extreme oversold"
+    elif rsi < 30:    pts = 3.5; label = f"{round(rsi,1)} - oversold"
+    elif rsi < 45:    pts = 3.0; label = f"{round(rsi,1)} - mildly bullish"
+    elif rsi <= 55:   pts = 2.0; label = f"{round(rsi,1)} - neutral"
+    elif rsi <= 70:   pts = 1.0; label = f"{round(rsi,1)} - mildly overbought"
+    elif rsi <= 80:   pts = 0.5; label = f"{round(rsi,1)} - overbought"
+    else:             pts = 0.0; label = f"{round(rsi,1)} - extreme overbought"
 
     return {
         "score": pts, "max": 4,
@@ -147,14 +146,14 @@ def _score_moving_averages(close: pd.Series) -> dict:
     sma50  = float(close.rolling(50).mean().iloc[-1])  if len(close) >= 50  else None
     sma200 = float(close.rolling(200).mean().iloc[-1]) if len(close) >= 200 else None
 
-    # Golden / Death Cross (SMA50 vs SMA200) — 2 pts
+    # Golden / Death Cross (SMA50 vs SMA200) - 2 pts
     if sma50 is not None and sma200 is not None:
         cross_pts = 2.0 if sma50 > sma200 else 0.0
         cross_lbl = "golden cross (SMA50 > SMA200)" if sma50 > sma200 else "death cross (SMA50 < SMA200)"
         score += cross_pts
         detail["sma_cross"] = {"value": f"SMA50={round(sma50,2)} SMA200={round(sma200,2)} → {cross_lbl}", "pts": cross_pts, "max": 2}
 
-    # Price vs SMA50 — 1.5 pts
+    # Price vs SMA50 - 1.5 pts
     if sma50 is not None:
         pct50 = (price - sma50) / sma50 * 100
         pts50 = 1.5 if pct50 >= 0 else (1.0 if pct50 >= -5 else 0.0)
@@ -164,7 +163,7 @@ def _score_moving_averages(close: pd.Series) -> dict:
             "pts": pts50, "max": 1.5,
         }
 
-    # Price vs SMA200 — 1.5 pts
+    # Price vs SMA200 - 1.5 pts
     if sma200 is not None:
         pct200 = (price - sma200) / sma200 * 100
         pts200 = 1.5 if pct200 >= 0 else (0.75 if pct200 >= -10 else 0.0)
@@ -200,7 +199,7 @@ def _score_volume(prices_df: pd.DataFrame) -> dict:
 # Agent class
 
 class TechnicalsAgent(BaseAgent):
-    """Technical Analysis Agent — pure quantitative, no LLM."""
+    """Technical Analysis Agent - pure quantitative, no LLM."""
 
     def __init__(self):
         super().__init__(agent_id="technicals", agent_name="Technical Analyst")
@@ -253,7 +252,7 @@ class TechnicalsAgent(BaseAgent):
         if rsi_val and rsi_val > 70:
             risks.append(f"RSI overbought at {round(rsi_val,1)}")
         if rsi_val and rsi_val < 30:
-            risks.append(f"RSI oversold ({round(rsi_val,1)}) — potential further downside")
+            risks.append(f"RSI oversold ({round(rsi_val,1)}) - potential further downside")
         if sma50 and sma200 and sma50 < sma200:
             risks.append("Death cross active: SMA50 < SMA200")
         if hist and hist < 0:

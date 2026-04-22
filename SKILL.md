@@ -1,4 +1,4 @@
-# Financial Researcher — Claude Code Skill
+# Financial Researcher - Claude Code Skill
 
 Autonomous financial analysis engine. Given a stock ticker, runs 10 AI investment agents and generates an IB-grade Excel report.
 
@@ -47,7 +47,7 @@ python run.py <TICKER> --quiet
 | Financials | Income statement, cash flow, balance sheet (5-year historical) |
 | Multiples | Peer comparables with user-editable weights |
 | DCF Model | IB-style DCF with Excel formulas and sensitivity table |
-| Analyst Panel | All 10 agents — signal, score, reasoning, key risks |
+| Analyst Panel | All 10 agents - signal, score, reasoning, key risks |
 | Summary | Investment decision, consensus, PM thesis, risk snapshot |
 
 ## Web UI alternative

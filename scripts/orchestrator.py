@@ -1,23 +1,6 @@
 """
-Orchestrator
-Central pipeline for the Financial Researcher.
-
-`run_analysis(ticker, peers)` fetches all data, runs all 10 agents
-sequentially, and returns a fully consolidated result dict.
-
-Agent execution order:
-    1.  Fundamentals       (quant)
-    2.  Ben Graham         (quant + LLM)
-    3.  Warren Buffett     (quant + LLM)
-    4.  Aswath Damodaran   (quant + LLM)
-    5.  Cathie Wood        (quant + LLM)
-    6.  Michael Burry      (quant + LLM)
-    7.  Technical Analyst  (quant only)
-    8.  Valuation Analyst  (quant + LLM)
-    9.  Risk Manager       (quant only)
-    10. Portfolio Manager  (LLM — receives signals from 1-9)
-
-Author: Joaquin Abondano w/ Claude Code
+Orchestrator - runs the full 10-agent pipeline and returns a consolidated result dict.
+Entry point: run_analysis(ticker, peers)
 """
 
 import logging
@@ -67,23 +50,11 @@ def _fetch_peers_data(peers: dict) -> dict:
 
 def run_analysis(ticker: str, peers: Optional[dict] = None) -> dict:
     """
-    Run the full 10-agent analysis pipeline on a single ticker.
+    Run the full 10-agent pipeline on a single ticker.
 
-    Parameters
-    ticker : str
-        Stock ticker symbol (e.g. "AAPL", "GOOGL").
-    peers : dict | None
-        Optional peer universe {ticker: None}. If None, uses DEFAULT_PEERS
-        (or get_peer_suggestions() in a future version).
-
-    Returns
-    dict with keys:
-        ticker          — analyzed ticker
-        company_data    — company info + key metrics snapshot
-        agent_signals   — {agent_id: AgentSignal} for agents 1-9
-        portfolio_decision — AgentSignal from Portfolio Manager
-        risk_metrics    — extracted from Risk Manager output
-        consensus       — {bullish, neutral, bearish, avg_score}
+    peers: {ticker: None} mapping. Defaults to DEFAULT_PEERS if None.
+    Returns a dict with keys: ticker, company_data, financials, peers_data,
+    agent_signals, portfolio_decision, risk_metrics, consensus.
     """
     ticker = ticker.upper().strip()
     logger.info(f"{'='*60}\n  Starting analysis for {ticker}\n{'='*60}")
@@ -100,7 +71,7 @@ def run_analysis(ticker: str, peers: Optional[dict] = None) -> dict:
     risk_free      = get_risk_free_rate()
     macro          = get_macro_context()
 
-    # Price history — 2 years for SMA200 + beta calculation
+    # Price history - 2 years for SMA200 + beta calculation
     prices_df   = get_prices(ticker, period="2y", interval="1d")
     spy_prices  = get_prices("SPY",   period="2y", interval="1d")
 
@@ -149,7 +120,7 @@ def run_analysis(ticker: str, peers: Optional[dict] = None) -> dict:
             if agent.agent_id == "risk_manager":
                 risk_metrics = signal.scores.get("risk_metrics", {})
         else:
-            logger.warning(f"[{ticker}] {agent.agent_name} returned None — skipping.")
+            logger.warning(f"[{ticker}] {agent.agent_name} returned None - skipping.")
 
     # 4. Run Portfolio Manager (agent #10)
     logger.info(f"[{ticker}] Running Portfolio Manager (synthesizing {len(agent_signals)} signals)...")

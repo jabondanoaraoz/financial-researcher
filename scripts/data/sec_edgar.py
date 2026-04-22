@@ -1,13 +1,5 @@
 """
-SEC EDGAR Data Adapter
-Official SEC filings data extraction using EDGAR API.
-
-EDGAR provides the most authoritative financial data directly from SEC filings.
-All public companies must file quarterly (10-Q) and annual (10-K) reports.
-
-API Documentation: https://www.sec.gov/edgar/sec-api-documentation
-
-Author: Joaquin Abondano w/ Claude Code
+SEC EDGAR Data Adapter - XBRL financial facts from official SEC filings (10-K, 10-Q).
 """
 
 import requests
@@ -22,8 +14,6 @@ from pathlib import Path
 
 from data.cache import get_cache
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # SEC requires a User-Agent header with contact info
@@ -473,19 +463,3 @@ def get_filing_text(
         return None
 
 
-if __name__ == "__main__":
-    # Quick test
-    print("Testing SEC EDGAR adapter...")
-
-    ticker = "AAPL"
-
-    # Test CIK lookup
-    cik = ticker_to_cik(ticker)
-    print(f"CIK for {ticker}: {cik}")
-
-    # Test XBRL facts
-    facts = get_xbrl_facts(ticker)
-    if facts:
-        print(f"\nAvailable metrics: {list(facts.keys())}")
-        if 'Revenue' in facts:
-            print(f"\nRecent Revenue:\n{facts['Revenue'].head()}")

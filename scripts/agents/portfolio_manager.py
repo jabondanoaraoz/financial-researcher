@@ -1,6 +1,6 @@
 """
 Portfolio Manager Agent
-"Synthesize 9 analysts. Make the call." — senior portfolio manager.
+"Synthesize 9 analysts. Make the call." - senior portfolio manager.
 
 Receives ALL AgentSignals from the other 9 agents plus risk metrics,
 weighs the evidence, and produces a single final investment decision.
@@ -10,14 +10,13 @@ analyst reports and decides: what to do, with how much conviction,
 and at what price range.
 
 Output (via LLM):
-    signal          — bullish | neutral | bearish
-    confidence      — 0.0–1.0
-    target_action   — buy | hold | sell
-    target_price_low  / target_price_high — price range estimate
-    reasoning       — 3–4 sentence executive summary
-    key_risks       — top 3 risks from all analyst reports
+    signal          - bullish | neutral | bearish
+    confidence      - 0.0–1.0
+    target_action   - buy | hold | sell
+    target_price_low  / target_price_high - price range estimate
+    reasoning       - 3–4 sentence executive summary
+    key_risks       - top 3 risks from all analyst reports
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 import json
@@ -42,14 +41,14 @@ You do not simply vote-count. You weigh: which analysts have the most relevant l
 for this type of company? Where do they agree? Where do they disagree, and why?
 What does the risk profile tell you about position sizing?
 
-Produce your final decision as JSON only — no prose outside the JSON:
+Produce your final decision as JSON only - no prose outside the JSON:
 
 {
   "signal": "bullish" | "neutral" | "bearish",
   "confidence": <float 0.0–1.0>,
   "target_action": "buy" | "hold" | "sell",
-  "target_price_low": <float — conservative fair value estimate>,
-  "target_price_high": <float — optimistic fair value estimate>,
+  "target_price_low": <float - conservative fair value estimate>,
+  "target_price_high": <float - optimistic fair value estimate>,
   "reasoning": "<3–4 sentences: consensus view, key agreement/disagreement, final rationale>",
   "key_risks": ["<top risk 1>", "<top risk 2>", "<top risk 3>"],
   "conviction": "high" | "medium" | "low"
@@ -57,7 +56,7 @@ Produce your final decision as JSON only — no prose outside the JSON:
 
 
 class PortfolioManagerAgent(BaseAgent):
-    """Portfolio Manager — synthesizes all 9 agent signals into final decision."""
+    """Portfolio Manager - synthesizes all 9 agent signals into final decision."""
 
     def __init__(self, llm: Optional[LLMClient] = None):
         super().__init__(agent_id="portfolio_manager", agent_name="Portfolio Manager")
@@ -74,7 +73,7 @@ class PortfolioManagerAgent(BaseAgent):
                 ticker=ticker, signal=SIGNAL_NEUTRAL, confidence=0.1,
                 scores={"total": 10.0, "total_max": 20.0},
                 reasoning="No agent signals received.",
-                key_risks=["Pipeline error — no agent data"],
+                key_risks=["Pipeline error - no agent data"],
                 target_action=ACTION_HOLD,
             )
 

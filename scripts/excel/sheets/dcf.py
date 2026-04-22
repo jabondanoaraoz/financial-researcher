@@ -1,10 +1,9 @@
 """
-DCF Model Sheet  (v3 — full rewrite)
+DCF Model Sheet  (v3 - full rewrite)
 Full IB-style DCF with Excel formulas for all projections and derived cells.
 Yellow input cells are user-editable; WACC and all projections are formulaic.
 Single combined table: historical cols C-G + projection cols H-L in the same rows.
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 import math
@@ -186,7 +185,7 @@ def build(wb, result):
 
     # Title
     ws.row_dimensions[r].height = 28
-    wc(ws, r, C1, f"  DCF MODEL  —  {ticker}",
+    wc(ws, r, C1, f"  DCF MODEL  -  {ticker}",
        font=_f(14, True, WHITE), bg=NAVY_DARK, align=AL_L)
     merge(ws, r, C1, r, CE)
     r += 1
@@ -389,7 +388,7 @@ def build(wb, result):
     spacer(ws, r); r += 1
 
     # ── SECTION 4: DCF Bridge ─────────────────────────────────────────────────
-    sec_hdr(ws, r, "Detailed Projections — FCF & Present Value", C1, CE); r += 1
+    sec_hdr(ws, r, "Detailed Projections - FCF & Present Value", C1, CE); r += 1
 
     ws.row_dimensions[r].height = 16
     wc(ws, r, C1, "", font=_f(9, True, WHITE), bg=NAVY_MED, align=AL_C, border=BORDER_ALL)

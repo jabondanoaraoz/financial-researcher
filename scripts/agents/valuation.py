@@ -1,27 +1,26 @@
 """
 Valuation Agent
-"What is this business worth?" — three independent methods, one consensus.
+"What is this business worth?" - three independent methods, one consensus.
 
 Calculates intrinsic value using three methodologies and triangulates a
 weighted fair value estimate. Uses LLM only to generate the reasoning
-narrative — all numbers are computed deterministically.
+narrative - all numbers are computed deterministically.
 
 Methods:
-    1. DCF (50% weight)       — 5-year revenue projection → FCF → discount at WACC
-    2. Peer Multiples (30%)   — median EV/EBITDA of peers × target EBITDA
-    3. Graham Number (20%)    — sqrt(22.5 × EPS × BVPS)
+    1. DCF (50% weight)       - 5-year revenue projection → FCF → discount at WACC
+    2. Peer Multiples (30%)   - median EV/EBITDA of peers × target EBITDA
+    3. Graham Number (20%)    - sqrt(22.5 × EPS × BVPS)
 
 If peer data is unavailable, weights shift to 65% DCF / 35% Graham.
 
 Output: estimated fair value, implied upside/downside, signal.
 
 Key differentiators vs Damodaran agent:
-    • Uses revenue-based (not FCFF) DCF — simpler, faster, complementary
+    • Uses revenue-based (not FCFF) DCF - simpler, faster, complementary
     • Adds peer-relative valuation (market-implied benchmark)
     • Graham Number as hard floor anchor
     • Combines all three into a single consensus price target
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 import logging
@@ -43,7 +42,7 @@ PROJECTION_YEARS    = 5
 
 
 SYSTEM_PROMPT = """You are a senior equity analyst performing a multi-method stock valuation.
-You have three independent intrinsic value estimates — DCF, peer multiples, and Graham Number —
+You have three independent intrinsic value estimates - DCF, peer multiples, and Graham Number —
 and a weighted consensus fair value. Your job is to synthesize these into a coherent narrative
 that explains what the numbers mean and whether the current price is justified.
 

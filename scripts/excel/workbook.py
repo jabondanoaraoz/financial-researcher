@@ -7,13 +7,12 @@ Usage:
     generate_report(result, "output/AAPL_analysis.xlsx")
 
 Sheet order:
-    1. Financials     — company profile, income statement, cash flow, balance sheet
-    2. Multiples      — peer-based valuation with user-editable weights
-    3. DCF Model      — full IB-style DCF with Excel formulas
-    4. Analyst Panel  — all 10 agents with scoring, pillar breakdown, reasoning
-    5. Summary        — investment decision, consensus, risk, PM thesis
+    1. Financials     - company profile, income statement, cash flow, balance sheet
+    2. Multiples      - peer-based valuation with user-editable weights
+    3. DCF Model      - full IB-style DCF with Excel formulas
+    4. Analyst Panel  - all 10 agents with scoring, pillar breakdown, reasoning
+    5. Summary        - investment decision, consensus, risk, PM thesis
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 import os

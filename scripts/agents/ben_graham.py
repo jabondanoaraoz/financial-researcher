@@ -1,26 +1,25 @@
 """
 Ben Graham Agent
-"The Intelligent Investor" — the most quantitative agent in the suite.
+"The Intelligent Investor" - the most quantitative agent in the suite.
 
 Graham's philosophy: buy with a margin of safety. Numbers must justify the price.
-He never paid for hope, growth, or brand — only for verified assets and earnings.
+He never paid for hope, growth, or brand - only for verified assets and earnings.
 
 Scoring (/30):
-    Graham Number & margin of safety  6 pts  (20%) — his most iconic metric
-    P/E vs dynamic risk-free floor     5 pts  (17%) — earnings yield vs bonds
-    P/B < 1.5                          5 pts  (17%) — asset-based floor
-    Liquidity + NCAV (net-net)         7 pts  (23%) — his deepest value concept
-    Earnings stability                 5 pts  (17%) — predictability over growth
-    Dividend record (bonus)            2 pts  ( 6%) — income discipline
+    Graham Number & margin of safety  6 pts  (20%) - his most iconic metric
+    P/E vs dynamic risk-free floor     5 pts  (17%) - earnings yield vs bonds
+    P/B < 1.5                          5 pts  (17%) - asset-based floor
+    Liquidity + NCAV (net-net)         7 pts  (23%) - his deepest value concept
+    Earnings stability                 5 pts  (17%) - predictability over growth
+    Dividend record (bonus)            2 pts  ( 6%) - income discipline
 
 Key differentiators vs other agents:
-    • Graham Number is a hard price ceiling — no moat, no narrative overrides it
+    • Graham Number is a hard price ceiling - no moat, no narrative overrides it
     • NCAV (Current Assets - Total Liabilities) flags true net-net opportunities
-    • P/E threshold is DYNAMIC: 1 / (1.5 × risk_free_rate) — tightens with rates
-    • Dividend penalises lightly — Graham preferred them but didn't require them
+    • P/E threshold is DYNAMIC: 1 / (1.5 × risk_free_rate) - tightens with rates
+    • Dividend penalises lightly - Graham preferred them but didn't require them
     • Would score GOOGL harshly on valuation despite its quality (by design)
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 import logging
@@ -38,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """You are Benjamin Graham, father of value investing and author of "The Intelligent Investor."
 Your philosophy is ruthlessly quantitative: the market is a voting machine in the short run but a weighing
-machine in the long run. You demand a margin of safety in every purchase — never pay for hope or narrative.
+machine in the long run. You demand a margin of safety in every purchase - never pay for hope or narrative.
 You distrust growth projections, prefer tangible assets, and always ask: "What do I own if the business fails?"
 
 You will receive quantitative scores (/30) across six criteria. Produce your opinion as JSON only:
@@ -100,14 +99,14 @@ def _fmt_big(v) -> str:
 
 def _score_graham_number(inc, bs, key_metrics: dict, av: dict) -> dict:
     """
-    Graham Number /6  — margin of safety against intrinsic asset value.
+    Graham Number /6  - margin of safety against intrinsic asset value.
 
     Formula: sqrt(22.5 × EPS × Book Value per Share)
     This is the maximum price Graham would pay; deeper discount = more pts.
 
-        Price < 50% of GN  → 6 pts  (50% margin of safety — rare opportunity)
-        Price < 66% of GN  → 5 pts  (33% MoS — Graham's recommended threshold)
-        Price < 80% of GN  → 3 pts  (20% MoS — acceptable for defensive investor)
+        Price < 50% of GN  → 6 pts  (50% margin of safety - rare opportunity)
+        Price < 66% of GN  → 5 pts  (33% MoS - Graham's recommended threshold)
+        Price < 80% of GN  → 3 pts  (20% MoS - acceptable for defensive investor)
         Price < 100% of GN → 1 pt   (at or near fair value)
         Price > GN         → 0 pts  (no margin of safety)
     """
@@ -117,7 +116,7 @@ def _score_graham_number(inc, bs, key_metrics: dict, av: dict) -> dict:
     book_value = None   # per share
     price      = key_metrics.get("current_price")
 
-    # EPS — try yfinance metrics first, fall back to AV
+    # EPS - try yfinance metrics first, fall back to AV
     if inc is not None and not inc.empty:
         col = inc.columns[0]
         ni  = _inc_get(inc, "Net Income")
@@ -161,13 +160,13 @@ def _score_graham_number(inc, bs, key_metrics: dict, av: dict) -> dict:
         }
         return {"score": pts, "max": 6, "detail": detail}
 
-    # Can't compute — note why
+    # Can't compute - note why
     missing = []
     if not eps or eps <= 0:        missing.append("positive EPS")
     if not book_value:             missing.append("book value")
     if not price:                  missing.append("current price")
     detail["graham_number"] = {
-        "value": f"Cannot compute — missing: {', '.join(missing)}",
+        "value": f"Cannot compute - missing: {', '.join(missing)}",
         "pts": 0, "max": 6
     }
     return {"score": 0.0, "max": 6, "detail": detail}
@@ -179,7 +178,7 @@ def _score_pe_dynamic(key_metrics: dict, av: dict, risk_free_rate: float) -> dic
 
     Graham's rule: earnings yield (1/PE) must exceed 1.5× the AAA bond yield.
     Threshold PE = 1 / (1.5 × risk_free_rate).
-    When rates rise, the acceptable P/E falls — making this rate-aware.
+    When rates rise, the acceptable P/E falls - making this rate-aware.
     """
     detail = {}
 
@@ -201,7 +200,7 @@ def _score_pe_dynamic(key_metrics: dict, av: dict, risk_free_rate: float) -> dic
             "pts": pts, "max": 5,
         }
     elif pe and pe <= 0:
-        detail["pe_negative"] = {"value": "Negative earnings — automatic 0", "pts": 0, "max": 5}
+        detail["pe_negative"] = {"value": "Negative earnings - automatic 0", "pts": 0, "max": 5}
         pts = 0.0
     else:
         detail["pe_unavailable"] = {"value": "P/E not available", "pts": 0, "max": 5}
@@ -238,7 +237,7 @@ def _score_pb(key_metrics: dict, av: dict) -> dict:
             combined_ok = combined <= 22.5
             detail["pe_times_pb"] = {
                 "value": f"PE×PB = {combined:.1f}  ({'≤22.5 ✓' if combined_ok else '>22.5 ✗'})",
-                "pts": 0,  # informational — already captured in individual metrics
+                "pts": 0,  # informational - already captured in individual metrics
                 "max": 0,
             }
     else:
@@ -258,10 +257,10 @@ def _score_liquidity_ncav(bs, key_metrics: dict) -> dict:
         Graham required CR > 2 for industrial companies.
         For utilities he accepted lower; we apply the general threshold.
 
-    NCAV — Net Current Asset Value (0-3 pts):
+    NCAV - Net Current Asset Value (0-3 pts):
         NCAV = Current Assets - Total Liabilities (not just current liabilities)
         NCAV/share vs current price:
-            Price < NCAV/share    → 3 pts  (true "net-net" — Graham's holy grail)
+            Price < NCAV/share    → 3 pts  (true "net-net" - Graham's holy grail)
             Price < 1.5× NCAV/sh  → 2 pts  (near net-net)
             Price < 2× NCAV/sh    → 1 pt   (reasonable asset backing)
             Price > 2× NCAV/sh    → 0 pts
@@ -358,7 +357,7 @@ def _score_earnings_stability(inc, financials: dict) -> dict:
     # Bonus: earnings growth trend (+1 pt)
     growth_pts = 0.0
     if len(ni_series) >= 3 and all(v > 0 for v in ni_series[:3]):
-        # Most recent 3 years — check if trend is upward
+        # Most recent 3 years - check if trend is upward
         if ni_series[0] > ni_series[1] > ni_series[2]:
             growth_pts = 1.0
         elif ni_series[0] > ni_series[2]:
@@ -376,7 +375,7 @@ def _score_earnings_stability(inc, financials: dict) -> dict:
 
 def _score_dividend(key_metrics: dict, av: dict) -> dict:
     """
-    Dividend Record /2  (bonus — not penalised if absent)
+    Dividend Record /2  (bonus - not penalised if absent)
 
     Graham preferred uninterrupted dividends for 20 years (defensive).
     We award bonus points for current dividend yield; no penalty for zero.
@@ -384,7 +383,7 @@ def _score_dividend(key_metrics: dict, av: dict) -> dict:
     detail = {}
 
     # key_metrics stores dividend_yield already in % (adapter does ×100 on raw decimal)
-    # AV stores as raw decimal (0.0027 = 0.27%) — must multiply ×100
+    # AV stores as raw decimal (0.0027 = 0.27%) - must multiply ×100
     dy_km  = key_metrics.get("dividend_yield")
     dy_av  = float(av.get("dividend_yield")) if (av and av.get("dividend_yield")) else None
     dps    = av.get("dividend_per_share") if av else None
@@ -410,7 +409,7 @@ def _score_dividend(key_metrics: dict, av: dict) -> dict:
         return {"score": pts, "max": 2, "detail": detail}
 
     detail["dividend"] = {
-        "value": "No dividend paid (bonus not awarded — not penalised)",
+        "value": "No dividend paid (bonus not awarded - not penalised)",
         "pts": 0, "max": 2,
     }
     return {"score": 0.0, "max": 2, "detail": detail}
@@ -419,7 +418,7 @@ def _score_dividend(key_metrics: dict, av: dict) -> dict:
 # Agent class
 
 class BenGrahamAgent(BaseAgent):
-    """Ben Graham — margin of safety through quantitative rigor."""
+    """Ben Graham - margin of safety through quantitative rigor."""
 
     def __init__(self, llm: Optional[LLMClient] = None):
         super().__init__(agent_id="ben_graham", agent_name="Ben Graham")
@@ -462,7 +461,7 @@ class BenGrahamAgent(BaseAgent):
         user_prompt = f"""
 Ticker: {ticker} ({company_name})
 
-GRAHAM SCORES — total {round(total, 2)}/{total_max}:
+GRAHAM SCORES - total {round(total, 2)}/{total_max}:
 
 1. GRAHAM NUMBER (margin of safety): {gn_score['score']}/{gn_score['max']}
 {_fmt_detail(gn_score['detail'])}
@@ -490,7 +489,7 @@ Key context:
   Risk-Free Rate:     {round(risk_free * 100, 2)}%  (dynamic P/E limit = {round(1/(1.5*risk_free), 1)}x)
 
 As Graham, you are deeply sceptical of companies trading above their Graham Number.
-Be honest — if the numbers don't justify the price, say so clearly.
+Be honest - if the numbers don't justify the price, say so clearly.
 """
 
         llm_result    = self.llm.generate_json(SYSTEM_PROMPT, user_prompt)

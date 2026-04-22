@@ -4,7 +4,6 @@ Company profile, income statement (5y), cash flow (5y), balance sheet (5y).
 Oldest year LEFT, most recent year RIGHT.
 Margin column (col H) uses Excel formulas referencing the data cells.
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 import math
@@ -303,7 +302,7 @@ def build(wb, result):
     rows["current_assets"]    = _fin_row("Current Assets",     "Current Assets",     bs, alt=True)
     rows["current_liabilities"]= _fin_row("Current Liabilities","Current Liabilities",bs, alt=False)
 
-    # Current Ratio row — formula only in H col; fill "—" in data cols
+    # Current Ratio row - formula only in H col; fill "—" in data cols
     ws.row_dimensions[r].height = 16
     wc(ws, r, C1, "Current Ratio", font=_f(9, True), bg=BLUE_TINT, align=AL_LI, border=BORDER_ALL)
     for i in range(N_YEARS):
@@ -315,7 +314,7 @@ def build(wb, result):
     rows["current_ratio"] = r
     r += 1
 
-    # Net Debt — each year col formula: =debt_cell - cash_cell
+    # Net Debt - each year col formula: =debt_cell - cash_cell
     ws.row_dimensions[r].height = 16
     wc(ws, r, C1, "Net Debt", font=_f(9, True, WHITE), bg=NAVY_MED, align=AL_LI, border=BORDER_ALL)
     for i in range(N_YEARS):

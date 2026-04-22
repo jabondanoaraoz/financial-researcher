@@ -1,5 +1,5 @@
 """
-Terminal display layer test — no API calls required.
+Terminal display layer test - no API calls required.
 Run from project root: python tests/test_display.py
 """
 

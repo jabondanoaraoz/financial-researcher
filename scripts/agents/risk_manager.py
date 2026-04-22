@@ -1,16 +1,16 @@
 """
 Risk Manager Agent
-100% quantitative — NO LLM.
+100% quantitative - NO LLM.
 
 Computes portfolio-level risk metrics from price history and maps them
 into a position-sizing recommendation via a simplified Kelly Criterion.
 
 Metrics (/20):
-    Volatility      4 pts  — annualized std dev of daily returns (lower = better)
-    Beta            4 pts  — systematic risk vs S&P 500
-    Max Drawdown    4 pts  — worst peak-to-trough over 12 months (lower = better)
-    Sharpe Proxy    4 pts  — risk-adjusted return estimate
-    Kelly Position  4 pts  — recommended max position size (higher = safer to size up)
+    Volatility      4 pts  - annualized std dev of daily returns (lower = better)
+    Beta            4 pts  - systematic risk vs S&P 500
+    Max Drawdown    4 pts  - worst peak-to-trough over 12 months (lower = better)
+    Sharpe Proxy    4 pts  - risk-adjusted return estimate
+    Kelly Position  4 pts  - recommended max position size (higher = safer to size up)
 
 Signal interpretation:
     High score = LOW risk profile → bullish (safe to own)
@@ -19,7 +19,6 @@ Signal interpretation:
 The `scores` dict embeds a `risk_metrics` sub-dict for the orchestrator
 to surface directly to the Portfolio Manager.
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 import logging
@@ -92,39 +91,39 @@ def _kelly_fraction(returns: pd.Series, risk_free_annual: float) -> float:
 
 def _score_volatility(vol: float) -> tuple[float, str]:
     """Lower volatility = higher score (less risk)."""
-    if vol < 0.15:    return 4.0, f"{vol:.1%} — low volatility"
-    elif vol < 0.25:  return 3.0, f"{vol:.1%} — moderate"
-    elif vol < 0.35:  return 2.0, f"{vol:.1%} — elevated"
-    elif vol < 0.50:  return 1.0, f"{vol:.1%} — high"
-    else:             return 0.0, f"{vol:.1%} — very high"
+    if vol < 0.15:    return 4.0, f"{vol:.1%} - low volatility"
+    elif vol < 0.25:  return 3.0, f"{vol:.1%} - moderate"
+    elif vol < 0.35:  return 2.0, f"{vol:.1%} - elevated"
+    elif vol < 0.50:  return 1.0, f"{vol:.1%} - high"
+    else:             return 0.0, f"{vol:.1%} - very high"
 
 
 def _score_beta(beta: float) -> tuple[float, str]:
     """Beta close to 1 = systematic; higher = more volatile than market."""
-    if beta < 0.5:    return 3.0, f"{round(beta,2)} — defensive"
-    elif beta < 0.8:  return 4.0, f"{round(beta,2)} — low-beta"
-    elif beta < 1.1:  return 3.0, f"{round(beta,2)} — market-like"
-    elif beta < 1.4:  return 2.0, f"{round(beta,2)} — above-market"
-    elif beta < 1.8:  return 1.0, f"{round(beta,2)} — high beta"
-    else:             return 0.0, f"{round(beta,2)} — very high beta"
+    if beta < 0.5:    return 3.0, f"{round(beta,2)} - defensive"
+    elif beta < 0.8:  return 4.0, f"{round(beta,2)} - low-beta"
+    elif beta < 1.1:  return 3.0, f"{round(beta,2)} - market-like"
+    elif beta < 1.4:  return 2.0, f"{round(beta,2)} - above-market"
+    elif beta < 1.8:  return 1.0, f"{round(beta,2)} - high beta"
+    else:             return 0.0, f"{round(beta,2)} - very high beta"
 
 
 def _score_drawdown(mdd: float) -> tuple[float, str]:
     """Less negative drawdown = higher score."""
     pct = mdd * 100  # negative
-    if pct > -10:     return 4.0, f"{pct:.1f}% max drawdown — minimal"
-    elif pct > -20:   return 3.0, f"{pct:.1f}% — moderate"
-    elif pct > -30:   return 2.0, f"{pct:.1f}% — significant"
-    elif pct > -45:   return 1.0, f"{pct:.1f}% — severe"
-    else:             return 0.0, f"{pct:.1f}% — extreme"
+    if pct > -10:     return 4.0, f"{pct:.1f}% max drawdown - minimal"
+    elif pct > -20:   return 3.0, f"{pct:.1f}% - moderate"
+    elif pct > -30:   return 2.0, f"{pct:.1f}% - significant"
+    elif pct > -45:   return 1.0, f"{pct:.1f}% - severe"
+    else:             return 0.0, f"{pct:.1f}% - extreme"
 
 
 def _score_sharpe(sharpe: float) -> tuple[float, str]:
-    if sharpe >= 2.0:   return 4.0, f"{round(sharpe,2)} — excellent"
-    elif sharpe >= 1.0: return 3.0, f"{round(sharpe,2)} — good"
-    elif sharpe >= 0.5: return 2.0, f"{round(sharpe,2)} — acceptable"
-    elif sharpe >= 0.0: return 1.0, f"{round(sharpe,2)} — poor"
-    else:               return 0.0, f"{round(sharpe,2)} — negative"
+    if sharpe >= 2.0:   return 4.0, f"{round(sharpe,2)} - excellent"
+    elif sharpe >= 1.0: return 3.0, f"{round(sharpe,2)} - good"
+    elif sharpe >= 0.5: return 2.0, f"{round(sharpe,2)} - acceptable"
+    elif sharpe >= 0.0: return 1.0, f"{round(sharpe,2)} - poor"
+    else:               return 0.0, f"{round(sharpe,2)} - negative"
 
 
 def _score_kelly(kelly: float) -> tuple[float, str]:
@@ -134,13 +133,13 @@ def _score_kelly(kelly: float) -> tuple[float, str]:
     elif pct >= 12:   return 3.0, f"{pct:.1f}%"
     elif pct >= 6:    return 2.0, f"{pct:.1f}%"
     elif pct >= 2:    return 1.0, f"{pct:.1f}%"
-    else:             return 0.0, f"{pct:.1f}% — Kelly negative (risk > reward)"
+    else:             return 0.0, f"{pct:.1f}% - Kelly negative (risk > reward)"
 
 
 # Agent class
 
 class RiskManagerAgent(BaseAgent):
-    """Risk Manager — pure quantitative, no LLM."""
+    """Risk Manager - pure quantitative, no LLM."""
 
     def __init__(self):
         super().__init__(agent_id="risk_manager", agent_name="Risk Manager")
@@ -174,7 +173,7 @@ class RiskManagerAgent(BaseAgent):
         vol = _annualized_volatility(returns)
         mdd = _max_drawdown(close)
 
-        # Beta — use SPY if available, else key_metrics fallback
+        # Beta - use SPY if available, else key_metrics fallback
         if spy_df is not None and not spy_df.empty:
             spy_close   = spy_df["Close"].dropna()
             spy_returns = _daily_returns(spy_close)
@@ -223,7 +222,7 @@ class RiskManagerAgent(BaseAgent):
         if vol > 0.40:  risks.append(f"High annualized volatility ({vol:.1%})")
         if beta > 1.5:  risks.append(f"High beta ({round(beta,2)}) amplifies market drawdowns")
         if mdd < -0.35: risks.append(f"Severe max drawdown ({mdd:.1%}) in last 12 months")
-        if sharpe < 0:  risks.append("Negative Sharpe ratio — return below risk-free rate")
+        if sharpe < 0:  risks.append("Negative Sharpe ratio - return below risk-free rate")
         if not risks:
             risks = ["Market regime change could alter risk profile", "Historical volatility may understate tail risk"]
 

@@ -1,13 +1,5 @@
 """
-FRED Data Adapter
-Federal Reserve Economic Data (FRED) - Macroeconomic indicators.
-
-FRED provides authoritative US economic data from the Federal Reserve Bank
-of St. Louis. Essential for understanding the macro environment for investments.
-
-API Docs: https://fred.stlouisfed.org/docs/api/
-
-Author: Joaquin Abondano w/ Claude Code
+FRED Data Adapter - risk-free rate and macroeconomic indicators from the Federal Reserve.
 """
 
 import requests
@@ -19,8 +11,6 @@ import pandas as pd
 
 from data.cache import get_cache
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BASE_URL = "https://api.stlouisfed.org/fred"
@@ -289,16 +279,3 @@ def get_macro_context() -> Dict[str, Any]:
     return macro
 
 
-if __name__ == "__main__":
-    # Quick test
-    print("Testing FRED adapter...")
-
-    rfr = get_risk_free_rate()
-    print(f"\nRisk-Free Rate (10Y Treasury): {rfr*100:.2f}%")
-
-    macro = get_macro_context()
-    print(f"\nMacro Context:")
-    print(f"  GDP: ${macro['gdp']['value']:.1f}B (YoY: {macro['gdp']['yoy_change']:.2f}%)")
-    print(f"  Inflation: {macro['inflation']['yoy_change']:.2f}%")
-    print(f"  Unemployment: {macro['unemployment']['value']:.1f}%")
-    print(f"  Fed Funds: {macro['fed_funds']['value']:.2f}%")

@@ -2,7 +2,6 @@
 Analyst Panel Sheet
 All 10 agents: signal, score, pillar breakdown, full reasoning, key risks.
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 from ..styles import (
@@ -32,13 +31,13 @@ CE  = 9   # col I
 
 SCORE_METHODOLOGY = {
     "fundamentals":      "0–1 score: valuation (P/E, P/B, EV/EBITDA), profitability (ROE, ROA, margins), growth (revenue, earnings), financial health (D/E, current ratio)",
-    "ben_graham":        "30 pts: current ratio ≥2, D/E ≤0.5, EPS stability ×5yr, P/E < 1/(2×RF), P/B < 1.2, dividend history — strict value screens",
+    "ben_graham":        "30 pts: current ratio ≥2, D/E ≤0.5, EPS stability ×5yr, P/E < 1/(2×RF), P/B < 1.2, dividend history - strict value screens",
     "warren_buffett":    "20 pts: ROIC vs WACC, FCF yield, brand/moat durability, earnings consistency, capital allocation quality",
     "aswath_damodaran":  "20 pts: FCFF-DCF vs current price, ROIC>WACC spread, FCF margin trajectory, payout sustainability, growth quality",
     "cathie_wood":       "20 pts (7/4/4/5): innovation proxy score, P/S vs growth rate, TAM addressable market, ecosystem & platform lock-in",
-    "michael_burry":     "20 pts (5/5/5/5): short interest (contrarian — high = bullish), insider activity, balance sheet leverage, macro risk score",
+    "michael_burry":     "20 pts (5/5/5/5): short interest (contrarian - high = bullish), insider activity, balance sheet leverage, macro risk score",
     "technicals":        "20 pts: RSI-14 (4), MACD-12/26/9 (4), Bollinger Bands (4), Moving Averages SMA50/200 (5), Volume trend (3)",
-    "valuation":         "20 pts: DCF-FCFF (8), peer EV/EBITDA multiples (8), Graham Number (4) — weighted convergence",
+    "valuation":         "20 pts: DCF-FCFF (8), peer EV/EBITDA multiples (8), Graham Number (4) - weighted convergence",
     "risk_manager":      "20 pts: annualized volatility (4), beta vs S&P (4), max drawdown (4), Sharpe ratio (4), Kelly criterion (4)",
     "portfolio_manager": "LLM synthesis: integrates all 9 signals with contextual weighting → final BUY/HOLD/SELL + position sizing",
 }
@@ -152,7 +151,7 @@ def build(wb, result):
 
     # Title
     ws.row_dimensions[r].height = 28
-    wc(ws, r, C1, f"  ANALYST PANEL  —  {ticker}",
+    wc(ws, r, C1, f"  ANALYST PANEL  -  {ticker}",
        font=_f(14, True, WHITE), bg=NAVY_DARK, align=AL_L)
     merge(ws, r, C1, r, CE)
     r += 1
@@ -166,7 +165,7 @@ def build(wb, result):
     legend_rows = [
         "How to read this table:",
         "Score: raw points from the quantitative model (varies by agent: /30 Ben Graham, /20 most agents, 0-1 Fundamentals)",
-        "Score%: normalized score (Score / Max × 100) — enables cross-agent comparison on a uniform scale",
+        "Score%: normalized score (Score / Max × 100) - enables cross-agent comparison on a uniform scale",
         "Green ≥ 65%  |  Amber 45–64%  |  Red < 45%",
     ]
     for i, txt in enumerate(legend_rows):

@@ -1,12 +1,12 @@
 """
 Warren Buffett Agent
-"Wonderful companies at fair prices" — hybrid quant + LLM agent.
+"Wonderful companies at fair prices" - hybrid quant + LLM agent.
 
 Scoring weights (total /20):
-    Moat                10 pts  (50%) — ROE consistency, ROIC, gross margin durability
-    Management Quality   4 pts  (20%) — Owner Earnings, FCF, ROIC vs WACC
-    Financial Discipline 3 pts  (15%) — D/E, interest coverage, current ratio
-    Valuation            3 pts  (15%) — Owner Earnings Yield, P/B, P/E vs growth
+    Moat                10 pts  (50%) - ROE consistency, ROIC, gross margin durability
+    Management Quality   4 pts  (20%) - Owner Earnings, FCF, ROIC vs WACC
+    Financial Discipline 3 pts  (15%) - D/E, interest coverage, current ratio
+    Valuation            3 pts  (15%) - Owner Earnings Yield, P/B, P/E vs growth
 
 Key differentiators vs other agents:
     • Measures ROE *consistency* across years (std_dev), not just a snapshot
@@ -14,7 +14,6 @@ Key differentiators vs other agents:
     • Penalises ROIC < WACC (capital destruction even with positive earnings)
     • Gross margin stability as a proxy for pricing power / durable moat
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 import logging
@@ -28,7 +27,7 @@ from agents.llm_client import LLMClient
 
 logger = logging.getLogger(__name__)
 
-EQUITY_RISK_PREMIUM = 0.055   # 5.5% — standard Damodaran ERP for US market
+EQUITY_RISK_PREMIUM = 0.055   # 5.5% - standard Damodaran ERP for US market
 TAX_RATE_DEFAULT    = 0.21    # 21% US corporate tax rate
 
 
@@ -41,7 +40,7 @@ that treats shareholders as partners. You are patient, deeply sceptical of lever
 pay more than intrinsic value. You think in decades, not quarters.
 
 You will receive quantitative scores (0–20) across four pillars plus the underlying metrics.
-Based on this data, produce a disciplined investment opinion in the following JSON format — no prose outside the JSON:
+Based on this data, produce a disciplined investment opinion in the following JSON format - no prose outside the JSON:
 
 {
   "signal": "bullish" | "neutral" | "bearish",
@@ -77,11 +76,11 @@ def _score_moat(financials: dict, av: dict) -> dict:
     Moat Score /10
 
     Sub-metrics:
-        ROE mean (3 pts)   — sustained returns signal an economic moat
-        ROE stability (2 pts) — low std_dev = Buffett's "predictable earnings"
-        ROIC (2.5 pts)     — true return on all invested capital
-        Gross margin level (1.5 pts) — pricing power
-        Gross margin stability (1 pt) — margin durability over time
+        ROE mean (3 pts)   - sustained returns signal an economic moat
+        ROE stability (2 pts) - low std_dev = Buffett's "predictable earnings"
+        ROIC (2.5 pts)     - true return on all invested capital
+        Gross margin level (1.5 pts) - pricing power
+        Gross margin stability (1 pt) - margin durability over time
     """
     score = 0.0
     detail = {}
@@ -197,9 +196,9 @@ def _score_management(financials: dict, key_metrics: dict, risk_free_rate: float
     Management Quality Score /4
 
     Sub-metrics:
-        Owner Earnings Yield (2 pts) — (OCF - Capex) / Market Cap
-        FCF consistently positive (1 pt) — Buffett wants reliable cash generation
-        ROIC vs WACC spread (1 pt) — are they creating or destroying value?
+        Owner Earnings Yield (2 pts) - (OCF - Capex) / Market Cap
+        FCF consistently positive (1 pt) - Buffett wants reliable cash generation
+        ROIC vs WACC spread (1 pt) - are they creating or destroying value?
     """
     score = 0.0
     detail = {}
@@ -309,9 +308,9 @@ def _score_financial_discipline(financials: dict, key_metrics: dict) -> dict:
     Financial Discipline Score /3
 
     Sub-metrics:
-        D/E ratio (1 pt)         — Buffett prefers companies that self-finance
-        Interest coverage (1 pt) — can the company survive a downturn?
-        Current ratio (1 pt)     — short-term liquidity buffer
+        D/E ratio (1 pt)         - Buffett prefers companies that self-finance
+        Interest coverage (1 pt) - can the company survive a downturn?
+        Current ratio (1 pt)     - short-term liquidity buffer
     """
     score = 0.0
     detail = {}
@@ -372,9 +371,9 @@ def _score_valuation(financials: dict, key_metrics: dict, av: dict) -> dict:
     Valuation Score /3
 
     Sub-metrics:
-        Owner Earnings Yield (1.5 pts) — primary Buffett valuation metric
-        P/B ratio (0.75 pts)           — intrinsic value anchor
-        P/E vs earnings growth (0.75 pts) — simplified PEG-style check
+        Owner Earnings Yield (1.5 pts) - primary Buffett valuation metric
+        P/B ratio (0.75 pts)           - intrinsic value anchor
+        P/E vs earnings growth (0.75 pts) - simplified PEG-style check
     """
     score = 0.0
     detail = {}
@@ -443,7 +442,7 @@ def _score_valuation(financials: dict, key_metrics: dict, av: dict) -> dict:
 # Agent class
 
 class WarrenBuffettAgent(BaseAgent):
-    """Warren Buffett — wonderful companies at fair prices."""
+    """Warren Buffett - wonderful companies at fair prices."""
 
     def __init__(self, llm: Optional[LLMClient] = None):
         super().__init__(agent_id="warren_buffett", agent_name="Warren Buffett")

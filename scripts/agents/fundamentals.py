@@ -1,12 +1,12 @@
 """
 Fundamentals Agent
-100% quantitative agent — no LLM calls.
+100% quantitative agent - no LLM calls.
 
 Scores a company across four pillars using hard thresholds:
-    1. Valuation      — Is the stock cheap or expensive?
-    2. Profitability  — Is the business high-quality?
-    3. Growth         — Is it growing fast enough?
-    4. Financial Health — Is the balance sheet safe?
+    1. Valuation      - Is the stock cheap or expensive?
+    2. Profitability  - Is the business high-quality?
+    3. Growth         - Is it growing fast enough?
+    4. Financial Health - Is the balance sheet safe?
 
 Each pillar returns:
     • sub_signal  : "bullish" | "neutral" | "bearish"
@@ -16,7 +16,6 @@ Each pillar returns:
 The final signal is the plurality vote of the four pillars.
 Confidence = fraction of pillars that agree with the final signal.
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 import logging
@@ -30,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 # Threshold tables
 
-# Valuation — LOWER is better
+# Valuation - LOWER is better
 VALUATION_THRESHOLDS = {
     # key            : (bullish_if_below, bearish_if_above)
     "pe_ratio"       : (10.0,  35.0),
@@ -40,7 +39,7 @@ VALUATION_THRESHOLDS = {
     "peg_ratio"      : (1.0,   2.5),
 }
 
-# Profitability — HIGHER is better (values as %)
+# Profitability - HIGHER is better (values as %)
 PROFITABILITY_THRESHOLDS = {
     # key                  : (bullish_if_above, bearish_if_below)
     "gross_margin"         : (50.0, 25.0),
@@ -50,7 +49,7 @@ PROFITABILITY_THRESHOLDS = {
     "roa"                  : (10.0,  3.0),
 }
 
-# Growth — HIGHER is better (values as %)
+# Growth - HIGHER is better (values as %)
 GROWTH_THRESHOLDS = {
     # key                  : (bullish_if_above, bearish_if_below)
     "revenue_growth_yoy"   : (20.0,  3.0),
@@ -58,7 +57,7 @@ GROWTH_THRESHOLDS = {
     "fcf_growth_yoy"       : (15.0, -5.0),
 }
 
-# Financial Health — mixed directions (annotated per metric)
+# Financial Health - mixed directions (annotated per metric)
 HEALTH_THRESHOLDS = {
     # key                  : (bull_threshold, bear_threshold)
     "current_ratio"        : (2.0,  1.0),   # higher = better
@@ -111,7 +110,7 @@ def _pillar_vote(signals: list) -> tuple:
 # Fundamentals Agent
 
 class FundamentalsAgent(BaseAgent):
-    """Quantitative fundamentals agent — no LLM required."""
+    """Quantitative fundamentals agent - no LLM required."""
 
     def __init__(self):
         super().__init__(agent_id="fundamentals", agent_name="Fundamentals Analyst")
@@ -350,7 +349,7 @@ class FundamentalsAgent(BaseAgent):
     # Reasoning & risks
 
     def _build_reasoning(self, ticker: str, pillars: dict, final_signal: str, confidence: float) -> str:
-        lines = [f"{ticker} — Fundamentals Analysis  |  {final_signal.upper()}  |  {confidence:.0%} confidence\n"]
+        lines = [f"{ticker} - Fundamentals Analysis  |  {final_signal.upper()}  |  {confidence:.0%} confidence\n"]
 
         labels = {
             "valuation":     "Valuation",

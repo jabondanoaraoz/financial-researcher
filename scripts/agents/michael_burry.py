@@ -1,26 +1,25 @@
 """
 Michael Burry Agent
-"Find what everyone else is missing." — contrarian deep value.
+"Find what everyone else is missing." - contrarian deep value.
 
 Burry's philosophy: the market systematically misprices unloved, complex,
 or misunderstood companies. He digs into financials to find businesses
 trading below intrinsic value, with hidden balance-sheet strength and
-real free cash flow — while the crowd ignores or actively bets against them.
+real free cash flow - while the crowd ignores or actively bets against them.
 
 Scoring (/20):
-    Deep Value Metrics      5 pts  (25%) — EV/EBITDA absolute + FCF yield
-    Hidden Value            5 pts  (25%) — Net cash position + P/Tangible Book
-    Solvency & Survival     5 pts  (25%) — D/E + Interest coverage
-    Contrarian Signals      5 pts  (25%) — Insider net buying + Short interest (high = bullish)
+    Deep Value Metrics      5 pts  (25%) - EV/EBITDA absolute + FCF yield
+    Hidden Value            5 pts  (25%) - Net cash position + P/Tangible Book
+    Solvency & Survival     5 pts  (25%) - D/E + Interest coverage
+    Contrarian Signals      5 pts  (25%) - Insider net buying + Short interest (high = bullish)
 
 Key differentiators vs other agents:
-    • EV/EBITDA with absolute thresholds — no story, just hard numbers
+    • EV/EBITDA with absolute thresholds - no story, just hard numbers
     • Tangible Book strips goodwill/intangibles: Burry wants real asset backing
-    • Net cash as % of market cap — hidden balance sheet value the crowd ignores
+    • Net cash as % of market cap - hidden balance sheet value the crowd ignores
     • High short interest scored as BULLISH: market hatred = potential opportunity
     • Insider net buying as primary contrarian confirmation signal
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 import logging
@@ -46,11 +45,11 @@ sceptical of consensus narratives. You seek companies with hard asset backing, r
 and a catalyst that will force the market to recognize the gap between price and value.
 
 You distrust intangible assets, goodwill, and "adjusted" earnings. You trust tangible book value,
-operating cash flows, and balance sheet math. High short interest does not scare you — it tells you
+operating cash flows, and balance sheet math. High short interest does not scare you - it tells you
 the crowd has decided the stock is worthless, which is exactly where you start looking.
 
 You will receive quantitative scores (0–20) across four pillars plus underlying metrics.
-Produce your investment opinion as JSON only — no prose outside the JSON:
+Produce your investment opinion as JSON only - no prose outside the JSON:
 
 {
   "signal": "bullish" | "neutral" | "bearish",
@@ -102,8 +101,8 @@ def _score_deep_value(financials: dict, key_metrics: dict) -> dict:
     Deep Value Metrics Score /5
 
     Sub-metrics:
-        EV/EBITDA (0-3 pts) — absolute thresholds; Burry wants hard-number cheapness
-        FCF yield  (0-2 pts) — (OCF - Capex) / Market Cap; real cash vs hype
+        EV/EBITDA (0-3 pts) - absolute thresholds; Burry wants hard-number cheapness
+        FCF yield  (0-2 pts) - (OCF - Capex) / Market Cap; real cash vs hype
     """
     score = 0.0
     detail = {}
@@ -166,10 +165,10 @@ def _score_hidden_value(financials: dict, key_metrics: dict) -> dict:
     Hidden Value Score /5
 
     Sub-metrics:
-        Net cash / Market cap (0-3 pts) — is the market paying negative enterprise value?
+        Net cash / Market cap (0-3 pts) - is the market paying negative enterprise value?
                                           Burry loves companies where cash + securities
                                           cover a large chunk of the market cap.
-        P/Tangible Book       (0-2 pts) — strips goodwill & intangibles; hard asset floor
+        P/Tangible Book       (0-2 pts) - strips goodwill & intangibles; hard asset floor
     """
     score = 0.0
     detail = {}
@@ -214,7 +213,7 @@ def _score_hidden_value(financials: dict, key_metrics: dict) -> dict:
             tangible_book = equity - goodwill - intangibles
             if tangible_book > 0:
                 ptb = mkt_cap / tangible_book
-                if ptb <= 1.0:   ptb_pts = 2.0   # trading below tangible book — Burry's dream
+                if ptb <= 1.0:   ptb_pts = 2.0   # trading below tangible book - Burry's dream
                 elif ptb <= 1.5: ptb_pts = 1.5
                 elif ptb <= 2.5: ptb_pts = 1.0
                 elif ptb <= 4.0: ptb_pts = 0.5
@@ -225,7 +224,7 @@ def _score_hidden_value(financials: dict, key_metrics: dict) -> dict:
                     "pts": round(ptb_pts, 2), "max": 2,
                 }
             elif tangible_book <= 0:
-                # Negative tangible book — automatic 0 and flag it
+                # Negative tangible book - automatic 0 and flag it
                 detail["p_tangible_book"] = {
                     "value": f"negative ({_fmt_big(tangible_book)})", "pts": 0.0, "max": 2
                 }
@@ -237,12 +236,12 @@ def _score_solvency(financials: dict) -> dict:
     """
     Solvency & Survival Score /5
 
-    Burry buys beaten-down companies — but they must survive long enough
+    Burry buys beaten-down companies - but they must survive long enough
     for the market to recognise the value. Debt and coverage are non-negotiable.
 
     Sub-metrics:
-        D/E ratio          (0-2.5 pts) — keeps the lights on during the holding period
-        Interest coverage  (0-2.5 pts) — EBIT / interest expense; can they service debt?
+        D/E ratio          (0-2.5 pts) - keeps the lights on during the holding period
+        Interest coverage  (0-2.5 pts) - EBIT / interest expense; can they service debt?
     """
     score = 0.0
     detail = {}
@@ -297,9 +296,9 @@ def _score_contrarian_signals(key_metrics: dict, insider_data: dict) -> dict:
     Contrarian Signals Score /5
 
     Sub-metrics:
-        Insider net buying   (0-3 pts) — insiders have skin in the game and private information;
+        Insider net buying   (0-3 pts) - insiders have skin in the game and private information;
                                          net buying = conviction the stock is cheap
-        Short interest       (0-2 pts) — high short interest = market hatred = Burry's hunting ground
+        Short interest       (0-2 pts) - high short interest = market hatred = Burry's hunting ground
                                          Scored bullish: the more the crowd hates it, the more
                                          interesting it becomes (assuming fundamentals hold)
     """
@@ -352,7 +351,7 @@ def _score_contrarian_signals(key_metrics: dict, insider_data: dict) -> dict:
 # Agent class
 
 class MichaelBurryAgent(BaseAgent):
-    """Michael Burry — contrarian deep value, find what everyone else is missing."""
+    """Michael Burry - contrarian deep value, find what everyone else is missing."""
 
     def __init__(self, llm: Optional[LLMClient] = None):
         super().__init__(agent_id="michael_burry", agent_name="Michael Burry")

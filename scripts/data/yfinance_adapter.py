@@ -1,8 +1,5 @@
 """
-YFinance Data Adapter
-Main data provider for financial data extraction using yfinance library.
-
-Author: Joaquin Abondano w/ Claude Code
+YFinance Data Adapter - primary financial data source.
 """
 
 import yfinance as yf
@@ -11,33 +8,11 @@ from datetime import datetime
 from typing import Optional, Dict, List, Any
 import logging
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 def get_company_info(ticker: str) -> Optional[Dict[str, Any]]:
-    """
-    Get company information and metadata.
-
-    Args:
-        ticker: Stock ticker symbol (e.g., 'AAPL', 'GOOGL')
-
-    Returns:
-        Dictionary containing:
-        - name: Company name
-        - sector: Business sector
-        - industry: Specific industry
-        - market_cap: Market capitalization
-        - currency: Trading currency
-        - exchange: Stock exchange
-        - description: Company description
-        - website: Company website
-        - employees: Number of employees
-        - country: Country of origin
-
-        Returns None if data extraction fails
-    """
+    """Return company metadata dict, or None on failure."""
     try:
         stock = yf.Ticker(ticker)
         info = stock.info
@@ -65,18 +40,7 @@ def get_company_info(ticker: str) -> Optional[Dict[str, Any]]:
 
 
 def get_prices(ticker: str, period: str = "1y", interval: str = "1d") -> Optional[pd.DataFrame]:
-    """
-    Get historical price data.
-
-    Args:
-        ticker: Stock ticker symbol
-        period: Data period (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max)
-        interval: Data interval (1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo, 3mo)
-
-    Returns:
-        DataFrame with columns: Date (index), Open, High, Low, Close, Volume, Adj Close
-        Returns None if data extraction fails
-    """
+    """Return OHLCV DataFrame for the given period/interval, or None on failure."""
     try:
         stock = yf.Ticker(ticker)
         prices = stock.history(period=period, interval=interval)
@@ -102,21 +66,7 @@ def get_prices(ticker: str, period: str = "1y", interval: str = "1d") -> Optiona
 
 
 def get_financials(ticker: str, years: int = 5) -> Optional[Dict[str, pd.DataFrame]]:
-    """
-    Get financial statements.
-
-    Args:
-        ticker: Stock ticker symbol
-        years: Number of years of historical data (default: 5)
-
-    Returns:
-        Dictionary containing three DataFrames:
-        - income_statement: Annual + TTM income statement
-        - balance_sheet: Annual + latest quarter balance sheet
-        - cash_flow: Annual + TTM cash flow statement
-
-        Returns None if data extraction fails
-    """
+    """Return income_statement, balance_sheet, cash_flow DataFrames (annual + quarterly), or None."""
     try:
         stock = yf.Ticker(ticker)
 
@@ -157,31 +107,7 @@ def get_financials(ticker: str, years: int = 5) -> Optional[Dict[str, pd.DataFra
 
 
 def get_key_metrics(ticker: str) -> Optional[Dict[str, float]]:
-    """
-    Get key valuation and performance metrics.
-
-    Args:
-        ticker: Stock ticker symbol
-
-    Returns:
-        Dictionary containing:
-        - pe_ratio: Price-to-Earnings ratio
-        - pb_ratio: Price-to-Book ratio
-        - ps_ratio: Price-to-Sales ratio
-        - peg_ratio: PEG ratio
-        - ev_ebitda: EV/EBITDA multiple
-        - dividend_yield: Dividend yield (%)
-        - beta: Stock beta
-        - 52w_high: 52-week high
-        - 52w_low: 52-week low
-        - avg_volume: Average daily volume
-        - shares_outstanding: Total shares outstanding
-        - enterprise_value: Enterprise value
-        - forward_pe: Forward P/E ratio
-        - price_to_fcf: Price to Free Cash Flow
-
-        Returns None if data extraction fails
-    """
+    """Return valuation and market metrics dict (pe_ratio, pb_ratio, ps_ratio, beta, etc.), or None."""
     try:
         stock = yf.Ticker(ticker)
         info = stock.info
@@ -218,19 +144,7 @@ def get_key_metrics(ticker: str) -> Optional[Dict[str, float]]:
 
 
 def get_insider_transactions(ticker: str) -> Optional[Dict[str, Any]]:
-    """
-    Get insider trading activity for the ticker.
-
-    Returns:
-        Dictionary containing:
-        - transactions: list of raw transaction dicts (date, insider, type, shares, value)
-        - net_buy_value: total $ value of buys minus sells (last 6 months)
-        - n_buyers: number of distinct insiders who bought
-        - n_sellers: number of distinct insiders who sold
-        - summary: "net_buying" | "net_selling" | "neutral"
-
-        Returns None if data extraction fails.
-    """
+    """Return insider activity summary (net_buy_value, n_buyers, n_sellers, summary) for last 6 months."""
     try:
         stock = yf.Ticker(ticker)
         df = stock.insider_transactions
@@ -308,22 +222,7 @@ def get_insider_transactions(ticker: str) -> Optional[Dict[str, Any]]:
 
 
 def get_news(ticker: str, limit: int = 10) -> Optional[List[Dict[str, Any]]]:
-    """
-    Get recent news articles about the company.
-
-    Args:
-        ticker: Stock ticker symbol
-        limit: Maximum number of news articles to return (default: 10)
-
-    Returns:
-        List of dictionaries containing:
-        - title: Article title
-        - publisher: News publisher
-        - link: Article URL
-        - publish_date: Publication timestamp
-
-        Returns None if data extraction fails
-    """
+    """Return list of recent news articles (title, publisher, link, publish_date). Empty list if unavailable."""
     try:
         stock = yf.Ticker(ticker)
 
@@ -374,16 +273,7 @@ def get_news(ticker: str, limit: int = 10) -> Optional[List[Dict[str, Any]]]:
 
 
 def get_peer_suggestions(ticker: str) -> Optional[List[str]]:
-    """
-    Get suggested peer companies based on sector and industry.
-
-    Args:
-        ticker: Stock ticker symbol
-
-    Returns:
-        List of peer ticker symbols from the same sector/industry
-        Returns None if data extraction fails
-    """
+    """Return peer tickers by sector/industry. Stub - use templates/peers_mapping.json instead."""
     try:
         stock = yf.Ticker(ticker)
         info = stock.info
@@ -414,11 +304,3 @@ def get_peer_suggestions(ticker: str) -> Optional[List[str]]:
         return None
 
 
-if __name__ == "__main__":
-    # Quick test
-    ticker = "AAPL"
-    print(f"Testing yfinance adapter with {ticker}")
-
-    info = get_company_info(ticker)
-    if info:
-        print(f"Company: {info['name']}")

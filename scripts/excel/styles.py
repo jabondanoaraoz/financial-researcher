@@ -2,7 +2,6 @@
 Excel Styles
 Shared palette, fonts, fills, borders, alignments, and cell helpers.
 
-Author: Joaquin Abondano w/ Claude Code
 """
 
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side

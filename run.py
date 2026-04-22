@@ -1,5 +1,5 @@
 """
-Financial Researcher — CLI entry point.
+Financial Researcher - CLI entry point.
 
 Usage:
     python run.py AAPL
