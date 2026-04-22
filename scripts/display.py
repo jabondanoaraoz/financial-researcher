@@ -79,7 +79,7 @@ def print_summary(result: dict) -> None:
     mktcap     = km.get("market_cap")
     pe         = km.get("pe_ratio")
     fwd_pe     = km.get("forward_pe")
-    ps         = km.get("price_to_sales")
+    ps         = km.get("ps_ratio")
     ev_ebitda  = km.get("ev_to_ebitda")
 
     def _fmt_cap(v):
@@ -181,7 +181,7 @@ def print_summary(result: dict) -> None:
     if risk:
         print(f"\n  {_bold('RISK SNAPSHOT')}")
         beta      = risk.get("beta")
-        sharpe    = risk.get("sharpe_ratio")
+        sharpe    = risk.get("sharpe_proxy")
         max_dd    = risk.get("max_drawdown")
         vol       = risk.get("annualized_volatility")
         debt_eq   = risk.get("debt_to_equity")
