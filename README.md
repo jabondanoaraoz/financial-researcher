@@ -98,7 +98,7 @@ Requires a free [Groq API key](https://console.groq.com). Alpha Vantage and FRED
 python run.py AAPL
 
 # Batch mode — analyzes each ticker sequentially, one Excel per ticker
-python run.py SOFI NU MELI GOOGL
+python run.py AAPL MSFT META GOOGL
 
 # Custom peer universe
 python run.py AAPL --peers MSFT GOOGL AMZN META
