@@ -80,7 +80,7 @@ def print_summary(result: dict) -> None:
     pe         = km.get("pe_ratio")
     fwd_pe     = km.get("forward_pe")
     ps         = km.get("ps_ratio")
-    ev_ebitda  = km.get("ev_to_ebitda")
+    ev_ebitda  = km.get("ev_ebitda")
 
     def _fmt_cap(v):
         if v is None:
@@ -169,10 +169,12 @@ def print_summary(result: dict) -> None:
         conf   = f"{signal.confidence:.0%}".rjust(5)
         total  = signal.scores.get("total")
         tmax   = signal.scores.get("total_max", 20)
-        if total is not None:
-            score_str = f"{total:>4.0f}/{tmax}"
-        else:
+        if total is None:
             score_str = "   —/—"
+        elif tmax <= 1.0:
+            score_str = f"{total:>7.0%}  "
+        else:
+            score_str = f"{total:>4.0f}/{tmax}"
         action = ACTION_EMOJI.get(signal.target_action, signal.target_action.upper())
         print(f"  {name} {sig}  {conf}  {score_str}  {action}")
 

@@ -204,6 +204,7 @@ def get_key_metrics(ticker: str) -> Optional[Dict[str, float]]:
             'forward_pe': float(info.get('forwardPE', 0)) if info.get('forwardPE') else None,
             'price_to_fcf': float(info.get('priceToFreeCashFlow', 0)) if info.get('priceToFreeCashFlow') else None,
             'current_price': float(info.get('currentPrice', 0)) if info.get('currentPrice') else None,
+            'market_cap': float(info.get('marketCap', 0)) if info.get('marketCap') else None,
             'short_percent_of_float': float(info.get('shortPercentOfFloat', 0)) * 100 if info.get('shortPercentOfFloat') else None,
             'short_ratio': float(info.get('shortRatio', 0)) if info.get('shortRatio') else None,
         }

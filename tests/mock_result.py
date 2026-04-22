@@ -196,7 +196,7 @@ def make_mock_result():
             "key_metrics": {
                 "current_price": 196.45, "pe_ratio": 29.9, "forward_pe": 27.1,
                 "pb_ratio": 47.5, "ps_ratio": 7.9, "peg_ratio": 2.8,
-                "ev_to_ebitda": 22.5, "beta": 1.21,
+                "ev_ebitda": 22.5, "beta": 1.21,
                 "52w_high": 237.23, "52w_low": 164.08,
                 "dividend_yield": 0.53, "shares_outstanding": 15.1e9,
                 "enterprise_value": 3.3e12, "short_percent_of_float": 0.71,
