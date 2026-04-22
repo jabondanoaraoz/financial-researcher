@@ -71,11 +71,11 @@ Each agent embodies a distinct investment philosophy and scores the stock on its
 
 The generated workbook contains 5 IB-style sheets:
 
-1. **Financials** — 5-year income statement, cash flow, and balance sheet with formula-driven ratios
-2. **Multiples** — Peer comparables table with user-editable weighting
-3. **DCF Model** — Full discounted cash flow model with Excel formulas, WACC build-up, and sensitivity table
-4. **Analyst Panel** — All 10 agents with signal, confidence, pillar-level scores, reasoning, and key risks
-5. **Summary** — Investment decision, consensus heatmap, Portfolio Manager thesis, and risk snapshot
+1. **Financials**: 5-year income statement, cash flow, and balance sheet with formula-driven ratios
+2. **Multiples**: Peer comparables table with user-editable weighting
+3. **DCF Model**: Full discounted cash flow model with Excel formulas, WACC build-up, and sensitivity table
+4. **Analyst Panel**: All 10 agents with signal, confidence, pillar-level scores, reasoning, and key risks
+5. **Summary**: Investment decision, consensus heatmap, Portfolio Manager thesis, and risk snapshot
 
 ## 🚀 Quick Start
 
@@ -94,8 +94,11 @@ Requires a free [Groq API key](https://console.groq.com). Alpha Vantage and FRED
 ## 🖥️ CLI Reference
 
 ```bash
-# Basic analysis — terminal summary + Excel report
+# Single ticker
 python run.py AAPL
+
+# Batch mode — analyzes each ticker sequentially, one Excel per ticker
+python run.py SOFI NU MELI GOOGL
 
 # Custom peer universe
 python run.py AAPL --peers MSFT GOOGL AMZN META
@@ -103,7 +106,7 @@ python run.py AAPL --peers MSFT GOOGL AMZN META
 # Terminal summary only, skip Excel
 python run.py AAPL --no-excel
 
-# Custom Excel output path
+# Custom Excel output path (single ticker only)
 python run.py AAPL --output reports/AAPL_Q2.xlsx
 
 # Suppress terminal output (silent Excel generation)
@@ -151,7 +154,7 @@ financial-researcher/
 | Layer | Tools |
 |-------|-------|
 | **Data** | `yfinance`, `sec-edgar-downloader`, `alpha_vantage`, `fredapi` |
-| **LLM** | `groq` (llama-3.3-70b-versatile) — swappable via `.env` |
+| **LLM** | `groq` (llama-3.3-70b-versatile) swappable via `.env` |
 | **Processing** | `pandas`, `numpy` |
 | **Excel** | `openpyxl` |
 | **Cache** | `sqlite3` via `sqlalchemy` |
@@ -164,7 +167,7 @@ This tool is for **educational and research purposes only**. The outputs — age
 
 ## 👤 Author
 
-**Joaquín Abondano Araoz** — Strategic & Financial Planning · Value Investing · Data Analytics · AI & ML
+**Joaquín Abondano Araoz** — Financial Modeling & Valuation · Value Investing · Data Analytics · AI & ML
 
 [Website](https://www.joaquinabondano.com) · [LinkedIn](https://www.linkedin.com/in/joaquin-abondano) · [GitHub](https://github.com/jabondanoaraoz)
 
