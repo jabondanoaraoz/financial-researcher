@@ -144,7 +144,8 @@ def build(wb, result):
         mult_keys = ["ps_ratio", "pe_ratio", "forward_pe", "ev_ebitda", "price_to_fcf", "beta"]
         for j, key in enumerate(mult_keys):
             v = _safe(pd_.get(key))
-            wc(ws, r, C1 + 2 + j, v, font=_f(9), bg=bg, align=AL_R, border=BORDER_ALL)
+            wc(ws, r, C1 + 2 + j, v, font=_f(9), bg=bg, align=AL_R, border=BORDER_ALL,
+               fmt="0.000" if key == "beta" else "0.00")
 
         peer_rows.append(r)
         r += 1
@@ -240,7 +241,7 @@ def build(wb, result):
             fmt = '#,##0.0'
         cell = ws.cell(row=r, column=C1 + 1, value=display_val)
         cell.font = _f(9); cell.fill = fill(bg)
-        cell.alignment = AL_R; cell.border = BORDER_ALL
+        cell.alignment = AL_C; cell.border = BORDER_ALL
         cell.number_format = fmt
         merge(ws, r, C1 + 1, r, CE)
         rows[f"fin_{key}"] = r
