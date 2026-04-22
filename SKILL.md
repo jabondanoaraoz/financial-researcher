@@ -50,6 +50,28 @@ python run.py <TICKER> --quiet
 | Analyst Panel | All 10 agents — signal, score, reasoning, key risks |
 | Summary | Investment decision, consensus, PM thesis, risk snapshot |
 
+## Web UI alternative
+
+For interactive browser-based exploration, suggest starting the Streamlit app instead of the CLI:
+
+```bash
+python -m streamlit run app.py
+```
+
+Opens at `http://localhost:8501`. The web UI displays:
+- Key valuation metrics with data disclaimer for missing API values
+- Consensus + Portfolio Manager decision and full reasoning
+- Agent breakdown table (signal, confidence, score, action)
+- Full agent reasoning & key risks (expandable section)
+- Peer comparables table (P/S, P/E, Fwd P/E, EV/EBITDA, P/FCF, Beta)
+- Risk snapshot (Beta, Sharpe, Max Drawdown, Volatility, Kelly sizing)
+- One-click Excel report download
+
+Suggest this when the user wants to:
+- Explore results visually in a browser
+- Share the tool with someone who doesn't use the terminal
+- Download the Excel from a UI instead of the command line
+
 ## Notes
 
 - Analysis takes 2–5 minutes (Groq rate limits cause automatic retries)
